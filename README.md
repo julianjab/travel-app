@@ -247,6 +247,9 @@ vamos/
 │   └── functions/
 │       └── .gitkeep
 │
+├── web/                            ← landing web (Astro, vacío hasta sección 5)
+│   └── CLAUDE.md
+│
 └── docs/                           ← documentación del producto
     ├── 01-research-mercado.md
     ├── 02-prd-inicial.md
@@ -266,7 +269,7 @@ Requiere Flutter SDK instalado en la máquina.
 
 ```
 cd app/
-flutter create . --org app.vamos --project-name vamos --platforms=ios,android
+flutter create . --org com.jabsolutions --project-name vamos --platforms=ios,android
 ```
 
 Después editar `pubspec.yaml` y agregar las dependencias permitidas según `app/CLAUDE.md`:
@@ -304,7 +307,38 @@ cd ../app/
 flutterfire configure
 ```
 
-### 5.3 Primer flujo end-to-end
+### 5.3 Setup de la landing web (Astro)
+
+Requiere Node 20+ y pnpm (o npm) instalado.
+
+```
+cd web/
+pnpm create astro@latest . -- --template minimal --typescript strict --install --no-git
+pnpm add firebase
+pnpm add -D @astrojs/tailwind tailwindcss
+```
+
+Después de scaffoldar:
+
+1. Configurar Astro en modo `static` en `astro.config.mjs`.
+2. Agregar la integración de Tailwind (`pnpm astro add tailwind`).
+3. Crear `src/pages/index.astro` (landing placeholder) y `src/pages/j/[code].astro` (página de invitación).
+4. Crear `src/lib/firebase.ts` con la config del proyecto Firebase (mismo `.firebaserc`).
+
+Ver convenciones completas en `web/CLAUDE.md`.
+
+Para deploy:
+
+```
+cd web/
+pnpm build              # genera dist/
+cd ../firebase/
+firebase deploy --only hosting
+```
+
+`firebase.json` ya tiene la config de hosting apuntando a `../web/dist`.
+
+### 5.4 Primer flujo end-to-end
 
 Una vez que el setup técnico esté completo, el primer flujo a implementar es F1.1 — Mis Viajes (definido en `docs/04-wireframes-mvp-2.md`). Es el más simple y prueba todo el plumbing: auth, repository, notifier, UI con Riverpod, navegación.
 

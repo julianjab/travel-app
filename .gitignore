@@ -30,6 +30,14 @@ firebase/firebase-debug.log
 firebase/functions/node_modules/
 firebase/functions/lib/
 
+# Astro / Web
+web/node_modules/
+web/dist/
+web/.astro/
+web/.env
+web/pnpm-debug.log*
+web/npm-debug.log*
+
 # OS
 .DS_Store
 Thumbs.db

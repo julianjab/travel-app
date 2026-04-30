@@ -111,7 +111,7 @@ Para que no haya ambigüedad cuando aparezcan dudas más adelante:
 - Coordinación de fechas previa al viaje (caso 2 del PRD)
 - Integración con WhatsApp más allá de compartir el link de invitación (sin bot, sin sincronización)
 - Multi-idioma (solo español)
-- Versión web (mobile only — Flutter)
+- Flutter web (la app móvil no se compila a web; la landing es un proyecto Astro separado bajo `web/`, con scope mínimo en MVP — solo página de invitación `/j/[code]`)
 - Booking directo de vuelos / hoteles
 - AI / recomendaciones de destinos
 - Red social, feed público, marketplace

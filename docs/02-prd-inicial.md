@@ -122,7 +122,7 @@ Para evitar la trampa del "todo para todos":
 - ❌ AI que recomienda destinos (el grupo ya sabe a dónde va)
 - ❌ Red social de viajeros / feed público
 - ❌ Marketplace de tour operadores
-- ❌ Versión web completa (mobile first, web solo para vista de respaldo)
+- ❌ Flutter web. Sí va una landing web mínima en Astro (`web/`) que sostiene la página de invitación de F1.4 (`/j/[code]`). Marketing en la landing está fuera del MVP — placeholder hasta post-Caso 0.
 - ❌ Soporte multi-idioma fuera de español (portugués viene en v2)
 - ❌ Integraciones complejas con calendarios corporativos
 
@@ -159,3 +159,5 @@ Cosas que hay que resolver pronto pero no urgente para empezar:
 - [ ] Branding visual (paleta, tono, identidad)
 - [x] Política de privacidad y datos → Nivel A (Firebase estándar) con reglas estrictas, separación entre datos del viajero (4.5) y documentos del viaje (caso 5), opt-in por campo, retención de documentos configurable (default 2 meses post-archivo)
 - [x] Modelo de roles dentro del grupo → resuelto en sección 4.4 (facilitador, no admin)
+- [x] Stack del sitio web → Astro (SSG, zero JS por default) bajo `web/`. Deploy en Firebase Hosting (mismo proyecto Firebase que la app móvil). Scope MVP: solo página de invitación `/j/[code]`. Marketing post-MVP. Razón: SEO + carga rápida + buena indexación por crawlers de IA, sin meter AWS al stack.
+- [x] Bundle ID iOS/Android → `com.jabsolutions.vamos` (la empresa es JAB Solutions)

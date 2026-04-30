@@ -90,6 +90,35 @@ Patrón equivalente a Firestore: solo miembros del viaje leen/escriben fotos de 
 
 Las reglas concretas se escriben cuando se implemente el primer flujo que sube fotos (probablemente F1.2 con la foto de portada).
 
+## Hosting (landing web)
+
+Firebase Hosting sirve la landing en Astro (`web/`). El build se genera con `astro build` (output estático) y se deploya con `firebase deploy --only hosting`.
+
+La config en `firebase.json` apunta a `../web/dist` como `public` directory. Las rutas dinámicas (`/j/[code]`) se manejan client-side: Astro genera HTML estático y un script que fetchea el viaje desde Firestore usando el SDK web.
+
+### Por qué Firebase Hosting y no CloudFront
+
+- Ya está en el stack — un solo proyecto Firebase, una sola cuenta de billing.
+- Gratis hasta 10GB/mes de transferencia, suficiente para Caso 0 + Casos 1-5.
+- CDN global incluido y dominios custom gratis.
+- Integración nativa con auth y reglas de Firestore.
+- CloudFront tendría sentido solo si ya hubiera infra AWS por otro motivo, que no es el caso.
+
+### Deploy
+
+```
+cd web/
+pnpm build              # genera dist/
+cd ../firebase/
+firebase deploy --only hosting
+```
+
+### Reglas para Hosting
+
+- No servir contenido dinámico que requiera SSR. Astro está configurado en modo `static`.
+- No replicar funcionalidad de la app móvil en la landing (auth con sesión persistente, edición de gastos, etc.). La landing es **lectura** sobre `invites/{inviteCode}` y `trips/{tripId}` (proyección mínima); cualquier escritura va por la app móvil.
+- No agregar configuraciones de redirects/rewrites sin actualizar este doc.
+
 ## Cómo agregar un campo a una colección — checklist
 
 Para no olvidarse de nada:

@@ -19,7 +19,7 @@ Antes de cualquier decisión de producto o de código, leé los documentos relev
 - **`docs/06-identidad-y-tono.md`** → nombre, tono de voz, microcopy validado del MVP
 - **`docs/01-research-mercado.md`** → research de mercado, gaps, oportunidad. Referencia, no urgente para el día a día.
 
-Si la pregunta es de código en Flutter, además leé `app/CLAUDE.md`. Si es de Firestore (reglas, índices, modelo), además leé `firebase/CLAUDE.md`.
+Si la pregunta es de código en Flutter, además leé `app/CLAUDE.md`. Si es de Firestore (reglas, índices, modelo), además leé `firebase/CLAUDE.md`. Si es del sitio web (Astro, landing, página de invitación), además leé `web/CLAUDE.md`.
 
 ## Principios del producto (no negociables)
 
@@ -35,14 +35,15 @@ Estos ganan cuando hay decisiones difíciles. Definidos en PRD §3.
 ## Decisiones tomadas (no reabrir sin evidencia nueva)
 
 ### Stack
-- **Frontend:** Flutter (iOS + Android, un solo codebase)
+- **Frontend (app móvil):** Flutter (iOS + Android, un solo codebase). Bundle ID `com.jabsolutions.vamos`.
 - **Backend:** Firebase (Auth, Firestore, Storage, FCM). Sin Cloud Functions en MVP.
 - **State management:** Riverpod (`AsyncNotifier` / `StreamNotifier`). No ChangeNotifier, no Bloc.
 - **Estructura:** híbrida pragmática (features + capa fina de repositories que aísla Firestore). No clean architecture estricta.
+- **Landing web:** Astro (SSG, zero JS por default). Deploy en Firebase Hosting. Sirve la página de invitación (`/j/[code]`) que sostiene F1.4 y eventualmente marketing. **No es Flutter web.**
 
 ### Producto
 - **Idioma:** solo español en MVP. Portugués en v2.
-- **Plataformas:** mobile only (iOS + Android). Sin versión web.
+- **Plataformas:** app móvil (iOS + Android, Flutter) + landing web (Astro) que sostiene la página de invitación (`/j/[code]`) en F1.4 y eventualmente marketing. Sin Flutter web.
 - **Monetización:** gratis sin restricciones durante el MVP. Modelo de largo plazo se reabre en mes 6 con datos reales.
 - **Roles:** modelo plano con un facilitador. Ver PRD §4.4.
 - **Datos sensibles:** el MVP NO maneja datos del viajero a nivel perfil (cédula, pasaporte, viajero frecuente). Eso va en v1.1+.
@@ -55,7 +56,7 @@ Definido explícito en `docs/03-mvp-scope.md` §4. Resumen:
 - Coordinación de fechas previa al viaje
 - Integración con WhatsApp más allá del link de invitación
 - Multi-idioma
-- Versión web
+- Flutter web (la app móvil no se compila a web; la landing es un proyecto Astro separado bajo `web/`, scope mínimo en MVP — solo página de invitación)
 - Booking directo
 - AI / recomendaciones
 - Push notifications (entra en v1.1 si el feedback lo pide)
@@ -86,11 +87,16 @@ vamos/
 │   ├── pubspec.yaml
 │   └── ...
 ├── firebase/                       ← infra Firebase
-│   ├── CLAUDE.md                   ← reglas, índices, modelo
+│   ├── CLAUDE.md                   ← reglas, índices, modelo, hosting
 │   ├── firestore.rules
 │   ├── firestore.indexes.json
 │   ├── firebase.json
 │   └── functions/                  ← vacío hasta v1.1+
+├── web/                            ← landing web (Astro)
+│   ├── CLAUDE.md                   ← convenciones del sitio
+│   ├── src/
+│   ├── astro.config.mjs
+│   └── package.json
 └── docs/                           ← documentación del producto
     ├── 01-research-mercado.md
     ├── 02-prd-inicial.md
