@@ -59,6 +59,85 @@ Cada feature puede contener:
 
 6. **Nada de carpetas `services/`, `helpers/`, `utils/` (más allá de `core/utils/`).** Son donde van a morir cosas que nadie sabe dónde poner. Si aparece algo verdaderamente transversal, va a `core/`. Si es de un feature, va al feature.
 
+7. **Cero valores visuales hardcoded en widgets.** Colores, spacings, radii y estilos de texto **siempre** vienen del theme o de los tokens en `core/theme/`. Detalle en § Design system y tokens.
+
+## Design system y tokens
+
+La app **no tiene identidad visual definitiva** (PRD §8 lo marca como pendiente). Mientras tanto, todos los valores visuales viven centralizados en `lib/core/theme/`. Cuando llegue el branding, se modifican los tokens y la app se adapta — **no se tocan widgets**.
+
+### Estructura
+
+```
+lib/core/theme/
+├── app_colors.dart       ← seed color + ColorScheme.fromSeed (light/dark) + semánticos custom (success, warning)
+├── app_typography.dart   ← TextTheme basado en Material 3, fuente del sistema por ahora
+├── app_spacing.dart      ← scale 4-8-16-24-32-48 (xs/sm/md/lg/xl/xxl)
+├── app_radii.dart        ← scale 8-12-16-24 + pill (sm/md/lg/xl/pill)
+└── app_theme.dart        ← arma la ThemeData final (Cards, Buttons, Inputs, Chips, etc.)
+```
+
+### Reglas duras (no negociables)
+
+1. **Cero `Color(0xFF...)` ni `Colors.blue` en widgets.** Siempre `Theme.of(context).colorScheme.<token>` (primary, surface, onSurface, error, etc.) o `AppColors.success` / `AppColors.warning` para los semánticos custom del producto.
+
+2. **Cero `EdgeInsets.all(16)` ni `SizedBox(height: 24)` con números crudos.** Siempre `AppSpacing.md`, `AppSpacing.lg`, etc.
+
+3. **Cero `BorderRadius.circular(8)` con número crudo.** Siempre `AppRadii.md`, `AppRadii.lg`, etc.
+
+4. **Cero `TextStyle(fontSize: 16, fontWeight: ...)` instanciado a mano.** Siempre `Theme.of(context).textTheme.<role>` (bodyLarge, titleMedium, labelLarge, etc.). Si necesitás un peso o color distinto, `.copyWith(...)` puntual sobre el estilo del theme.
+
+5. **Cero `ThemeData(...)` ni overrides de theme fuera de `app_theme.dart`.** Si querés cambiar el shape de un `Card` o el color de los `FilledButton`, se hace en el `_build` de `AppTheme`. Una pantalla **nunca** envuelve algo en `Theme(data: ..., child: ...)`.
+
+6. **Si necesitás un valor que no está en los tokens, agregalo al token.** Ampliar la escala (ej: `AppSpacing.xxxl = 64`) está bien si el caso aparece más de una vez. Hardcodear "porque es un caso único" es deuda — en 6 meses nadie va a saber por qué ese widget tiene `padding: EdgeInsets.all(13)`.
+
+### Cómo usar
+
+```dart
+import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_radii.dart';
+import '../../core/theme/app_spacing.dart';
+
+class TripCard extends StatelessWidget {
+  const TripCard({super.key, required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppRadii.lg),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: text.titleLarge),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            'En curso · día 3 de 10',
+            style: text.bodyMedium?.copyWith(color: AppColors.success),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### Cuándo evolucionar a componentes (`shared/widgets/`)
+
+No anticipadamente. Si un patrón visual (ej: card de viaje, chip de tag, fila de gasto) aparece en **2+ pantallas con la misma estructura**, ahí se extrae a `shared/widgets/<componente>.dart`. Antes no — citando regla del proyecto: si un patrón aparece una sola vez, queda concreto.
+
+### Cuándo cambiar los tokens
+
+- **Llega la identidad visual definitiva** → editar `app_colors.dart` (seed + semánticos), `app_typography.dart` (fontFamily + asset en pubspec), eventualmente `app_radii.dart` y `app_spacing.dart` si el sistema lo pide.
+- **El diseñador entrega Figma con tokens nombrados** → mapear 1:1 a los archivos de `core/theme/`. Si la nomenclatura difiere, ajustar la nuestra para coincidir — no inventar paralelos.
+- **Aparece un nuevo color semántico del producto** (ej: "info" para notificaciones) → agregarlo en `AppColors`, no en el widget que lo necesitó primero.
+
 ## Naming
 
 | Tipo | Patrón | Ejemplo |
@@ -144,6 +223,8 @@ Casi todos los providers van con `autoDispose` para no leakear listeners. La exc
 - No mezclar state managements (no agregar Bloc, ChangeNotifier, GetX).
 - No agregar dependencias "por si acaso". Cada paquete suma peso, riesgo y mantenimiento.
 - No abstraer prematuramente. Si un patrón aparece una sola vez, dejalo concreto. Si aparece la segunda, recién evaluar abstracción.
+- **No hardcodear valores visuales en widgets.** Colores, spacings, radii, estilos de texto siempre desde el theme o tokens en `core/theme/`. Ver § Design system y tokens.
+- No crear una librería de componentes custom (`AppButton`, `AppCard`, etc.) preventiva. Material 3 + tokens alcanza hasta que un patrón se repita 2+ veces.
 
 ## Dependencias permitidas
 
