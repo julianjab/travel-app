@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "142817827453",
+    "project_id": "vamos-app-a5f24",
+    "storage_bucket": "vamos-app-a5f24.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:142817827453:android:240f9de1bba906f2b2af14",
+        "android_client_info": {
+          "package_name": "com.jabsolutions.vamos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "142817827453-rqdfpiq3ckjnj6makhtf7rcj5vbq8hne.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWPYgU8a4-tEFp9BnaCfRPYHL8P_9Spus"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "142817827453-rqdfpiq3ckjnj6makhtf7rcj5vbq8hne.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "142817827453-3i3l6vqokdqi1682q9i1iigek2ppvcu2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.jabsolutions.vamos"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
