@@ -1,146 +1,150 @@
-# Firebase — Reglas, índices y modelo
+# Firebase — Rules, indexes, and model
 
-> Este archivo se aplica a todo lo que está bajo `firebase/`. Asumí que el `CLAUDE.md` raíz ya fue leído.
+> This file applies to everything under `firebase/`. Assume the root `CLAUDE.md` has already been read.
 
-## Modelo de datos
+## Data model
 
-**Fuente única de verdad:** `docs/05-modelo-datos-2.md`.
+**Single source of truth:** `docs/05-modelo-datos-2.md`.
 
-Cualquier cambio al modelo (campo nuevo, colección nueva, tipo cambiado) requiere:
+Any change to the model (new field, new collection, type change) requires:
 
-1. Actualizar `docs/05-modelo-datos-2.md` §2.2 primero.
-2. Actualizar el modelo Dart correspondiente en `app/lib/data/models/`.
-3. Si el campo afecta reglas de seguridad, actualizar `firestore.rules`.
-4. Si requiere índice nuevo, agregar a `firestore.indexes.json`.
+1. Update `docs/05-modelo-datos-2.md` §2.2 first.
+2. Update the corresponding Dart model in `app/lib/data/models/`.
+3. If the field affects security rules, update `firestore.rules`.
+4. If it requires a new index, add it to `firestore.indexes.json`.
 
-El orden importa: el doc primero. Si el doc no se actualiza, en 3 meses nadie va a recordar por qué un campo está ahí.
+The order matters: doc first. If the doc isn't updated, in 3 months no one will remember why a field is there.
 
-## Estructura de la carpeta
+## Folder structure
 
 ```
 firebase/
-├── CLAUDE.md                ← este archivo
-├── firebase.json            ← config del proyecto Firebase
-├── .firebaserc              ← alias del proyecto (dev / prod)
-├── firestore.rules          ← reglas de seguridad
-├── firestore.indexes.json   ← índices compuestos
-├── storage.rules            ← reglas de Firebase Storage (fotos de recibos, portadas)
-└── functions/               ← VACÍO HASTA v1.1+
+├── CLAUDE.md                ← this file
+├── firebase.json            ← Firebase project config
+├── .firebaserc              ← project alias (dev / prod)
+├── firestore.rules          ← security rules
+├── firestore.indexes.json   ← composite indexes
+├── storage.rules            ← Firebase Storage rules (receipt photos, covers)
+└── functions/               ← EMPTY UNTIL v1.1+
 ```
 
-## Reglas de seguridad
+## Security rules
 
-El esqueleto base está en `docs/05-modelo-datos-2.md` §4. **Es esqueleto, no production-ready.** Le falta:
+The base scaffold lives in `docs/05-modelo-datos-2.md` §4. **It is scaffold, not production-ready.** Missing:
 
-- Validación de tipos (`request.resource.data.amount is number`)
-- Límites de tamaño (string máximo de N caracteres)
-- Validación de campos requeridos en `create`
-- Prevención de spam en `invites` (rate limiting)
-- Validación de inmutabilidad de campos (ej: `createdBy` no se puede cambiar después del create)
+- Type validation (`request.resource.data.amount is number`)
+- Size limits (string max N characters)
+- Required-field validation on `create`
+- Spam prevention on `invites` (rate limiting)
+- Field immutability validation (e.g., `createdBy` cannot be changed after create)
 
-Cuando se cierre la versión production-ready de las reglas, vive en `firestore.rules` y se documenta en un archivo aparte (`docs/07-firestore-rules.md` está reservado para esto).
+When the production-ready version of the rules is closed, it lives in `firestore.rules` and is documented in a separate file (`docs/07-firestore-rules.md` is reserved for this).
 
-### Patrón general de las reglas
+### General rules pattern
 
-- **Solo miembros del viaje leen/escriben sus subcolecciones.** Esto se valida con `request.auth.uid in get(/databases/$(database)/documents/trips/$(tripId)).data.memberIds`.
-- **Cada `get(...)` cuenta como una lectura adicional.** Es plata mínima en Caso 0 pero tener presente al evaluar escala.
-- **`memberIds` es un array denormalizado en el doc del viaje.** Esto existe porque Firestore no permite reglas con join. Cualquier cambio en miembros tiene que actualizar el array Y la subcolección `members/`.
+- **Only trip members read/write its subcollections.** Validated with `request.auth.uid in get(/databases/$(database)/documents/trips/$(tripId)).data.memberIds`.
+- **Each `get(...)` counts as an extra read.** It's pennies in Case 0 but keep it in mind for scale.
+- **`memberIds` is a denormalized array** in the trip doc. This exists because Firestore doesn't allow rules with joins. Any membership change must update both the array AND the `members/` subcollection.
 
-### Reglas específicas que NO son obvias
+### Specific non-obvious rules
 
-- **`expenses.update`:** cualquier miembro del viaje puede editar cualquier gasto, **excepto** si `hasSettlements == true`. Cada edición se registra en `editHistory`. Decisión 3.6 del modelo de datos.
-- **`expenses.delete`:** solo el creador, y solo si `hasSettlements == false`. Borrar es destructivo (se va el historial con el gasto).
-- **`items.delete`:** autor del item O facilitador del viaje.
-- **`trips`:** no hay `delete`. Solo `archive` (cambiar `status` a `"archived"`).
-- **`invites`:** lectura pública por diseño (cualquiera con el link puede ver el `tripId`). El `create` es solo para usuarios autenticados.
+- **`expenses.update`:** any trip member can edit any expense, **except if `hasSettlements == true`**. Each edit is logged in `editHistory`. Decision 3.6 of the data model.
+- **`expenses.delete`:** only the creator, and only if `hasSettlements == false`. Deleting is destructive (history goes with the expense).
+- **`items.delete`:** item author OR trip facilitator.
+- **`trips`:** no `delete`. Only `archive` (change `status` to `"archived"`).
+- **`invites`:** public read by design (anyone with the link can see the `tripId`). `create` is for authenticated users only.
 
-## Índices
+## Indexes
 
-Los índices simples los crea Firestore solo. Los compuestos hay que declararlos en `firestore.indexes.json`. Los del MVP están listados en `docs/05-modelo-datos-2.md` §5:
+Simple indexes are auto-created by Firestore. Composite ones must be declared in `firestore.indexes.json`. The MVP ones are listed in `docs/05-modelo-datos-2.md` §5:
 
-- `items` por `(day asc, createdAt asc)` — vista del itinerario por día
-- `expenses` por `(date desc, createdAt desc)` — lista cronológica inversa
-- `trips` por `(memberIds array-contains, status, startDate desc)` — home "Mis viajes"
+- `items` by `(day asc, createdAt asc)` — daily itinerary view
+- `expenses` by `(date desc, createdAt desc)` — reverse chronological list
+- `trips` by `(memberIds array-contains, status, startDate desc)` — "My trips" home
 
-Si una query nueva requiere índice, Firestore lo dice en runtime con el link directo para crearlo. Cuando aparezca, agregalo al JSON y commiteá; no lo crees solo desde la consola, queda fuera de versión.
+If a new query requires an index, Firestore says so at runtime with a direct creation link. When it shows up, add it to the JSON and commit; don't create it from the console alone, that leaves it out of version control.
 
 ## Cloud Functions
 
-**No se usan en MVP.** Decisión cerrada en `docs/05-modelo-datos-2.md` §3.4.
+**Not used in MVP.** Closed decision in `docs/05-modelo-datos-2.md` §3.4.
 
-La carpeta `functions/` existe vacía como placeholder para v1.1+. Los casos donde podrían entrar:
+The `functions/` folder exists empty as a placeholder for v1.1+. Cases where they could enter:
 
-- **Notificaciones push** (FCM dispatch al votar / registrar gasto)
-- **Limpieza automática** de viajes archivados (borrar documentos del Storage después de N meses)
-- **Generación de `inviteCode` único** (si hay colisiones, aunque con 6+ caracteres random la probabilidad es despreciable para Caso 0)
+- **Push notifications** (FCM dispatch on vote / new expense)
+- **Automatic cleanup** of archived trips (delete Storage docs after N months)
+- **Unique `inviteCode` generation** (if collisions, though with 6+ random chars the probability is negligible for Case 0)
 
-Si te piden agregar una Cloud Function, alertar primero: "Esto implica salir del scope del MVP. ¿Confirmás?"
+If you're asked to add a Cloud Function, alert first: "This means going outside MVP scope. Confirm?"
 
-## Storage (firebase storage)
+## Storage (Firebase Storage)
 
-Para qué se usa:
+Used for:
 
-- **Fotos de portada de viajes** (`coverPhotoURL` en `trips/{tripId}`)
-- **Fotos de perfil de usuarios** (`photoURL` en `users/{userId}`)
-- **Fotos de recibos de gastos** (`photoURL` en `trips/{tripId}/expenses/{expenseId}`)
+- **Trip cover photos** (`coverPhotoURL` in `trips/{tripId}`)
+- **User profile photos** (`photoURL` in `users/{userId}`)
+- **Expense receipt photos** (`photoURL` in `trips/{tripId}/expenses/{expenseId}`)
 
-### Reglas de Storage
+### Storage rules
 
-Patrón equivalente a Firestore: solo miembros del viaje leen/escriben fotos de ese viaje. Foto de perfil es lectura pública (la ven en otros viajes), escritura solo del propio usuario.
+Pattern equivalent to Firestore: only trip members read/write that trip's photos. Profile photo is public read, write only by the user themselves.
 
-Las reglas concretas se escriben cuando se implemente el primer flujo que sube fotos (probablemente F1.2 con la foto de portada).
+Concrete rules are written when implementing the first flow that uploads photos (likely F1.2 with the cover photo).
 
-## Hosting (landing web)
+## Hosting (web landing)
 
-Firebase Hosting sirve la landing en Astro (`web/`). El build se genera con `astro build` (output estático) y se deploya con `firebase deploy --only hosting`.
+Firebase Hosting serves the Astro landing (`web/`). The build is generated with `astro build` (static output) and deployed with `firebase deploy --only hosting`.
 
-La config en `firebase.json` apunta a `../web/dist` como `public` directory. Las rutas dinámicas (`/j/[code]`) se manejan client-side: Astro genera HTML estático y un script que fetchea el viaje desde Firestore usando el SDK web.
+The config in `firebase.json` points to `../web/dist` as the `public` directory. Dynamic routes (`/j/[code]`) are handled client-side: Astro generates static HTML and a script that fetches the trip from Firestore using the web SDK.
 
-### Por qué Firebase Hosting y no CloudFront
+### Why Firebase Hosting and not CloudFront
 
-- Ya está en el stack — un solo proyecto Firebase, una sola cuenta de billing.
-- Gratis hasta 10GB/mes de transferencia, suficiente para Caso 0 + Casos 1-5.
-- CDN global incluido y dominios custom gratis.
-- Integración nativa con auth y reglas de Firestore.
-- CloudFront tendría sentido solo si ya hubiera infra AWS por otro motivo, que no es el caso.
+- Already in the stack — single Firebase project, single billing account.
+- Free up to 10GB/month of transfer, enough for Case 0 + Cases 1-5.
+- Global CDN included and custom domains free.
+- Native integration with auth and Firestore rules.
+- CloudFront would only make sense if there were already AWS infra for another reason, which is not the case.
 
 ### Deploy
 
 ```
 cd web/
-pnpm build              # genera dist/
+pnpm build              # generates dist/
 cd ../firebase/
 firebase deploy --only hosting
 ```
 
-### Reglas para Hosting
+### Hosting rules
 
-- No servir contenido dinámico que requiera SSR. Astro está configurado en modo `static`.
-- No replicar funcionalidad de la app móvil en la landing (auth con sesión persistente, edición de gastos, etc.). La landing es **lectura** sobre `invites/{inviteCode}` y `trips/{tripId}` (proyección mínima); cualquier escritura va por la app móvil.
-- No agregar configuraciones de redirects/rewrites sin actualizar este doc.
+- Don't serve dynamic content requiring SSR. Astro is configured in `static` mode.
+- Don't replicate mobile app functionality on the landing (auth with persistent session, expense editing, etc.). The landing is **read-only** over `invites/{inviteCode}` and `trips/{tripId}` (minimal projection); any write goes through the mobile app.
+- Don't add redirects/rewrites configurations without updating this doc.
 
-## Cómo agregar un campo a una colección — checklist
+## How to add a field to a collection — checklist
 
-Para no olvidarse de nada:
+So nothing is forgotten:
 
-1. Actualizar `docs/05-modelo-datos-2.md` §2.2 con el campo nuevo (tipo, default, opcional/requerido)
-2. Actualizar el modelo Dart en `app/lib/data/models/<colección>_model.dart`
-3. Actualizar el repository en `app/lib/data/repositories/<colección>_repository.dart` para que serialize/deserialize el campo
-4. Si el campo es requerido en `create`, actualizar la regla de `create` en `firestore.rules`
-5. Si el campo afecta queries, evaluar si necesita índice en `firestore.indexes.json`
-6. Si el campo es sensible (privacidad), documentar en PRD §4.5 o equivalente
-7. Si la app tiene datos en producción, planificar migración (en MVP esto no aplica todavía)
+1. Update `docs/05-modelo-datos-2.md` §2.2 with the new field (type, default, optional/required)
+2. Update the Dart model in `app/lib/data/models/<collection>_model.dart`
+3. Update the repository in `app/lib/data/repositories/<collection>_repository.dart` to serialize/deserialize the field
+4. If the field is required in `create`, update the `create` rule in `firestore.rules`
+5. If the field affects queries, evaluate if it needs an index in `firestore.indexes.json`
+6. If the field is sensitive (privacy), document in PRD §4.5 or equivalent
+7. If the app has production data, plan migration (in MVP this doesn't apply yet)
 
-## Lo que NO hacer
+## What NOT to do
 
-- No agregar campos al modelo sin actualizar el doc de modelo de datos primero.
-- No deshabilitar reglas para "probar rápido" en producción. Para probar usar el emulador local de Firebase.
-- No usar la consola de Firebase para crear índices fuera de versión.
-- No agregar Cloud Functions sin discutir el caso.
-- No agregar colecciones nuevas (notificaciones, logs, audit trail extra) — ver `docs/05-modelo-datos-2.md` §6 para lo que está deliberadamente fuera.
+- Don't add fields to the model without updating the data model doc first.
+- Don't disable rules to "test fast" in production. To test, use the local Firebase emulator.
+- Don't use the Firebase console to create indexes outside version control.
+- Don't add Cloud Functions without discussing the case.
+- Don't add new collections (notifications, logs, extra audit trail) — see `docs/05-modelo-datos-2.md` §6 for what's deliberately out.
 
-## Referencias rápidas
+## Comments in `.rules` and config files
 
-- Modelo de datos completo: `docs/05-modelo-datos-2.md`
-- PRD §4.5 (datos sensibles): `docs/02-prd-inicial.md`
-- Scope (qué NO va al MVP): `docs/03-mvp-scope.md` §4
+All inline comments in `firestore.rules`, `storage.rules`, and config JSONs are written in English.
+
+## Quick references
+
+- Full data model: `docs/05-modelo-datos-2.md`
+- PRD §4.5 (sensitive data): `docs/02-prd-inicial.md`
+- Scope (what's NOT in MVP): `docs/03-mvp-scope.md` §4

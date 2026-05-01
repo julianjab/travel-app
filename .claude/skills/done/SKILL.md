@@ -1,36 +1,36 @@
 ---
 name: done
 description: >
-  Cerrar el ciclo de una issue del backlog de Vamos. Corre el quality gate
-  (`/review`), abre PR con `Closes #N` autoinferido del nombre del branch
-  (`<ID>-<slug>`), y deja la card del Project en "In review". El cierre del
-  issue + paso a "Done" lo hace GitHub automáticamente al mergear el PR.
-  Triggers: "/done", "terminé la tarea", "abrir PR", "estoy listo para PR".
-  NO mergea solo — el merge es decisión humana en GitHub.
+  Close the loop on a Vamos backlog issue. Runs the quality gate (`/review`),
+  opens a PR with `Closes #N` auto-inferred from the branch name
+  (`<ID>-<slug>`), and moves the Project card to "In review". The actual
+  issue close + transition to "Done" is handled by GitHub on merge.
+  Triggers: "/done", "I'm done", "open a PR", "ready for review".
+  Does NOT auto-merge — merging is a human decision in GitHub.
 argument-hint: "[--draft] [--no-review]"
 disable-model-invocation: false
 ---
 
-## /done — Cerrar el ciclo de la issue
+## /done — Close the loop on the issue
 
-Pensado para correr **dentro del worktree** creado por `/take`. Toma el branch actual, infiere la issue asociada, corre el quality gate y abre el PR.
+Designed to run **inside the worktree** created by `/take`. Picks the current branch, infers the associated issue, runs the quality gate and opens the PR.
 
 ---
 
-## Pasos
+## Steps
 
-### 1. Validar contexto
+### 1. Validate context
 
 ```bash
 unset GH_TOKEN GITHUB_TOKEN
 BRANCH=$(git branch --show-current)
 ```
 
-- Si `BRANCH` == `main` → abortar. `/done` no se corre en main.
-- Extraer `ID` del nombre: regex `^([A-Z]+[0-9]*-[0-9]+)-`. Ej. `F1-06-onboarding-miembro` → `F1-06`.
-- Si no matchea → abortar y avisar: el branch no sigue la convención.
+- If `BRANCH` == `main` → abort. `/done` does not run on main.
+- Extract `ID` from the branch name: regex `^([A-Z]+[0-9]*-[0-9]+)-`. E.g. `F1-06-onboarding-miembro` → `F1-06`.
+- If it doesn't match → abort and warn: branch does not follow the convention.
 
-### 2. Buscar la issue asociada
+### 2. Find the associated issue
 
 ```bash
 ISSUE_NUM=$(gh issue list --repo julianjab/travel-app --state all \
@@ -38,30 +38,30 @@ ISSUE_NUM=$(gh issue list --repo julianjab/travel-app --state all \
   --jq ".[] | select(.title | startswith(\"[$ID]\")) | .number" | head -1)
 ```
 
-Si no encuentra → abortar. El branch debe nacer de una issue.
+If not found → abort. The branch must originate from an issue.
 
 ### 3. Quality gate
 
-A menos que se pase `--no-review`:
+Unless `--no-review` is passed:
 
 ```
 /review
 ```
 
-Si hay errores de lint, tests, o type-check → abortar y mostrar al usuario qué arreglar. NO seguir con el PR.
+If there are lint, test, or type-check errors → abort and show the user what to fix. Do NOT proceed to the PR.
 
-### 4. Push + abrir PR
+### 4. Push + open PR
 
 ```bash
 git push -u origin "$BRANCH"
 
-# Tomar título de la issue como base del PR title
+# Use the issue title as the basis for the PR title
 ISSUE_TITLE=$(gh issue view $ISSUE_NUM --repo julianjab/travel-app --json title --jq .title)
 
 PR_BODY=$(cat <<EOF
-## Resumen
+## Summary
 
-<rellenar con cambios principales — 2-3 bullets>
+<fill in main changes — 2-3 bullets>
 
 ## Issue
 
@@ -69,10 +69,10 @@ Closes #$ISSUE_NUM
 
 ## Checklist
 
-- [ ] Tests verdes (\`flutter test\` o equivalente)
-- [ ] Lint limpio
-- [ ] Criterio de hecho de la issue cubierto
-- [ ] Microcopy revisada (si aplica)
+- [ ] Tests green (\`flutter test\` or equivalent)
+- [ ] Lint clean
+- [ ] Issue acceptance criterion met
+- [ ] Microcopy reviewed (if applicable)
 EOF
 )
 
@@ -86,9 +86,9 @@ gh pr create --repo julianjab/travel-app \
   $DRAFT_FLAG
 ```
 
-### 5. Mover card del Project a "In review"
+### 5. Move the Project card to "In review"
 
-Si el campo `Status` del Project tiene opción `In review`:
+If the Project's `Status` field has an `In review` option:
 
 ```bash
 ITEM_ID=$(gh project item-list 1 --owner julianjab --format json \
@@ -102,29 +102,29 @@ IN_REVIEW_OPT=$(gh project field-list 1 --owner julianjab --format json \
   --field-id "$STATUS_FIELD_ID" --single-select-option-id "$IN_REVIEW_OPT"
 ```
 
-Si no existe la opción → seguir, no es bloqueante.
+If the option doesn't exist → continue, this is not blocking.
 
-### 6. Reportar
+### 6. Report
 
 ```
-✓ PR abierto: <URL>
+✓ PR opened: <URL>
   Branch:   $BRANCH
   Closes:   #$ISSUE_NUM
   Status:   In review
 
-Cuando se mergee, GitHub cierra la issue automáticamente y la card pasa a Done.
+When merged, GitHub will auto-close the issue and the card will move to Done.
 ```
 
 ---
 
-## Reglas duras
+## Hard rules
 
-- **No mergear desde acá.** El merge es decisión humana en la UI de GitHub.
-- **No saltarse `/review`** salvo flag explícito `--no-review` (y solo en hotfix urgente).
-- **No abrir PR sin issue asociada.** Si el branch no tiene ID válido → abortar.
-- **`Closes #N`** siempre va en el body del PR. Es lo que dispara el cierre automático.
+- **Do not merge from here.** Merging is a human decision in the GitHub UI.
+- **Do not skip `/review`** unless explicitly told via `--no-review` (and only for urgent hotfixes).
+- **Do not open a PR without an associated issue.** If the branch has no valid ID → abort.
+- **`Closes #N`** always goes in the PR body. That is what triggers the auto-close.
 
-## Cuándo NO usar /done
+## When NOT to use /done
 
-- Querés solo pushear sin abrir PR → `git push` directo.
-- Trabajo en progreso sin estar listo para review → seguí trabajando, no abras PR todavía. `--draft` es para PRs ya formados pero pendientes de detalle.
+- You only want to push without opening a PR → `git push` directly.
+- Work in progress not ready for review → keep working, do not open the PR yet. `--draft` is for PRs already shaped but pending detail.

@@ -1,96 +1,96 @@
-# Convenciones de código — Flutter
+# Code conventions — Flutter
 
-> Este archivo se aplica a todo lo que está bajo `app/`. Asumí que el `CLAUDE.md` raíz ya fue leído.
+> This file applies to everything under `app/`. Assume the root `CLAUDE.md` has already been read.
 
-## Estructura del proyecto
+## Project structure
 
 ```
 app/lib/
 ├── main.dart
 ├── app.dart                          ← MaterialApp + ProviderScope + router
 │
-├── core/                             ← cosas transversales
+├── core/                             ← cross-cutting concerns
 │   ├── theme/
 │   ├── router/
 │   ├── extensions/
 │   └── utils/
 │
-├── data/                             ← capa fina de Firestore
+├── data/                             ← thin Firestore layer
 │   ├── firebase/
-│   │   └── firebase_providers.dart   ← providers de FirebaseAuth, FirebaseFirestore
-│   ├── models/                       ← clases que mapean 1:1 a Firestore
-│   └── repositories/                 ← única forma de tocar Firestore
+│   │   └── firebase_providers.dart   ← FirebaseAuth, FirebaseFirestore providers
+│   ├── models/                       ← classes mapping 1:1 to Firestore
+│   └── repositories/                 ← the only way to touch Firestore
 │
-├── features/                         ← un folder por flujo del MVP
+├── features/                         ← one folder per MVP flow
 │   ├── auth/
-│   ├── trips/                        ← Flujo 1: crear viaje + sumar al grupo
-│   ├── itinerary/                    ← Flujo 2: itinerario + votación
-│   ├── expenses/                     ← Flujo 3: gastos compartidos
-│   ├── members/                      ← Flujo 4: gente + ajustes del viaje
-│   └── trip_shell/                   ← contenedor de tabs dentro del viaje
+│   ├── trips/                        ← Flow 1: create trip + add to group
+│   ├── itinerary/                    ← Flow 2: itinerary + voting
+│   ├── expenses/                     ← Flow 3: shared expenses
+│   ├── members/                      ← Flow 4: people + trip settings
+│   └── trip_shell/                   ← container for in-trip tabs
 │
-└── shared/                           ← widgets reutilizables entre features
+└── shared/                           ← widgets reused across features
     └── widgets/
 ```
 
-Cada feature puede contener:
-- `presentation/` — pantallas (`*_screen.dart`) y widgets propios del feature en `presentation/widgets/`
-- `application/` — notifiers de Riverpod (`*_notifier.dart`)
-- `domain/` — lógica pura, calculadoras, validadores. **Solo si el feature lo necesita.** No agregar carpetas vacías por simetría.
+Each feature may contain:
+- `presentation/` — screens (`*_screen.dart`) and feature-specific widgets in `presentation/widgets/`
+- `application/` — Riverpod notifiers (`*_notifier.dart`)
+- `domain/` — pure logic, calculators, validators. **Only if the feature needs it.** Don't add empty folders for symmetry.
 
-## Reglas duras
+## Hard rules
 
-1. **La UI nunca toca Firestore directo.** Los widgets en `presentation/` solo hablan con notifiers en `application/`. Los notifiers solo hablan con repositories en `data/repositories/`. Los repositories son los únicos que importan `cloud_firestore`.
-   - Razón: si en v1.1 migramos a Supabase, tocamos solo los repositories.
+1. **The UI never touches Firestore directly.** Widgets in `presentation/` only talk to notifiers in `application/`. Notifiers only talk to repositories in `data/repositories/`. Repositories are the only ones importing `cloud_firestore`.
+   - Reason: if we migrate to Supabase in v1.1, we touch only the repositories.
 
-2. **Lógica calculada va en `domain/`, no en widgets ni en notifiers.**
-   - Cálculo de saldos → `features/expenses/domain/balance_calculator.dart`
-   - Cálculo del footer del itinerario (totales, conversiones) → `features/itinerary/domain/itinerary_summary.dart`
-   - Razón: testeable sin Flutter ni Firebase.
+2. **Computed logic lives in `domain/`, not in widgets or notifiers.**
+   - Balance calculation → `features/expenses/domain/balance_calculator.dart`
+   - Itinerary footer (totals, conversions) → `features/itinerary/domain/itinerary_summary.dart`
+   - Reason: testable without Flutter or Firebase.
 
-3. **Notifiers son `AsyncNotifier` o `StreamNotifier`.** No `ChangeNotifier`. No `StateNotifier` legacy.
-   - `AsyncNotifier` para acciones puntuales (crear viaje, registrar gasto)
-   - `StreamNotifier` para escucha en vivo de Firestore (lista de viajes, items, gastos)
+3. **Notifiers are `AsyncNotifier` or `StreamNotifier`.** Not `ChangeNotifier`. Not legacy `StateNotifier`.
+   - `AsyncNotifier` for one-off actions (create trip, register expense)
+   - `StreamNotifier` for live Firestore listening (trip list, items, expenses)
 
-4. **Una pantalla = un archivo `*_screen.dart` en `presentation/`.**
-   - Si una pantalla crece, sus sub-widgets bajan a `presentation/widgets/` del mismo feature.
+4. **One screen = one `*_screen.dart` file in `presentation/`.**
+   - When a screen grows, its sub-widgets move down to `presentation/widgets/` of the same feature.
 
-5. **Widgets reutilizados en 2+ features → `shared/widgets/`.** Si vive en un solo feature, queda dentro del feature. **No hay `shared/` preventivo.**
+5. **Widgets reused in 2+ features → `shared/widgets/`.** If it lives in only one feature, it stays inside the feature. **No preventive `shared/`.**
 
-6. **Nada de carpetas `services/`, `helpers/`, `utils/` (más allá de `core/utils/`).** Son donde van a morir cosas que nadie sabe dónde poner. Si aparece algo verdaderamente transversal, va a `core/`. Si es de un feature, va al feature.
+6. **No `services/`, `helpers/`, `utils/` folders (beyond `core/utils/`).** That's where things go to die because no one knows where to put them. If something is truly cross-cutting, it goes to `core/`. If it's per-feature, it goes to the feature.
 
-7. **Cero valores visuales hardcoded en widgets.** Colores, spacings, radii y estilos de texto **siempre** vienen del theme o de los tokens en `core/theme/`. Detalle en § Design system y tokens.
+7. **Zero hardcoded visual values in widgets.** Colors, spacings, radii, and text styles **always** come from the theme or tokens in `core/theme/`. Detail in § Design system and tokens.
 
-## Design system y tokens
+## Design system and tokens
 
-La app **no tiene identidad visual definitiva** (PRD §8 lo marca como pendiente). Mientras tanto, todos los valores visuales viven centralizados en `lib/core/theme/`. Cuando llegue el branding, se modifican los tokens y la app se adapta — **no se tocan widgets**.
+The app **does not have a final visual identity** (PRD §8 marks it as pending). Meanwhile, all visual values live centralized in `lib/core/theme/`. When branding arrives, the tokens are modified and the app adapts — **widgets are not touched**.
 
-### Estructura
+### Structure
 
 ```
 lib/core/theme/
-├── app_colors.dart       ← seed color + ColorScheme.fromSeed (light/dark) + semánticos custom (success, warning)
-├── app_typography.dart   ← TextTheme basado en Material 3, fuente del sistema por ahora
+├── app_colors.dart       ← seed color + ColorScheme.fromSeed (light/dark) + custom semantic (success, warning)
+├── app_typography.dart   ← TextTheme based on Material 3, system font for now
 ├── app_spacing.dart      ← scale 4-8-16-24-32-48 (xs/sm/md/lg/xl/xxl)
 ├── app_radii.dart        ← scale 8-12-16-24 + pill (sm/md/lg/xl/pill)
-└── app_theme.dart        ← arma la ThemeData final (Cards, Buttons, Inputs, Chips, etc.)
+└── app_theme.dart        ← assembles the final ThemeData (Cards, Buttons, Inputs, Chips, etc.)
 ```
 
-### Reglas duras (no negociables)
+### Hard rules (non-negotiable)
 
-1. **Cero `Color(0xFF...)` ni `Colors.blue` en widgets.** Siempre `Theme.of(context).colorScheme.<token>` (primary, surface, onSurface, error, etc.) o `AppColors.success` / `AppColors.warning` para los semánticos custom del producto.
+1. **No `Color(0xFF...)` or `Colors.blue` in widgets.** Always `Theme.of(context).colorScheme.<token>` (primary, surface, onSurface, error, etc.) or `AppColors.success` / `AppColors.warning` for the product's custom semantics.
 
-2. **Cero `EdgeInsets.all(16)` ni `SizedBox(height: 24)` con números crudos.** Siempre `AppSpacing.md`, `AppSpacing.lg`, etc.
+2. **No `EdgeInsets.all(16)` or `SizedBox(height: 24)` with raw numbers.** Always `AppSpacing.md`, `AppSpacing.lg`, etc.
 
-3. **Cero `BorderRadius.circular(8)` con número crudo.** Siempre `AppRadii.md`, `AppRadii.lg`, etc.
+3. **No `BorderRadius.circular(8)` with raw numbers.** Always `AppRadii.md`, `AppRadii.lg`, etc.
 
-4. **Cero `TextStyle(fontSize: 16, fontWeight: ...)` instanciado a mano.** Siempre `Theme.of(context).textTheme.<role>` (bodyLarge, titleMedium, labelLarge, etc.). Si necesitás un peso o color distinto, `.copyWith(...)` puntual sobre el estilo del theme.
+4. **No `TextStyle(fontSize: 16, fontWeight: ...)` instantiated by hand.** Always `Theme.of(context).textTheme.<role>` (bodyLarge, titleMedium, labelLarge, etc.). If you need a different weight or color, use a spot `.copyWith(...)` over the theme style.
 
-5. **Cero `ThemeData(...)` ni overrides de theme fuera de `app_theme.dart`.** Si querés cambiar el shape de un `Card` o el color de los `FilledButton`, se hace en el `_build` de `AppTheme`. Una pantalla **nunca** envuelve algo en `Theme(data: ..., child: ...)`.
+5. **No `ThemeData(...)` or theme overrides outside `app_theme.dart`.** If you want to change the shape of a `Card` or the color of `FilledButton`, do it in `_build` of `AppTheme`. A screen **never** wraps something in `Theme(data: ..., child: ...)`.
 
-6. **Si necesitás un valor que no está en los tokens, agregalo al token.** Ampliar la escala (ej: `AppSpacing.xxxl = 64`) está bien si el caso aparece más de una vez. Hardcodear "porque es un caso único" es deuda — en 6 meses nadie va a saber por qué ese widget tiene `padding: EdgeInsets.all(13)`.
+6. **If you need a value not in the tokens, add it to the token.** Extending the scale (e.g., `AppSpacing.xxxl = 64`) is fine if the case appears more than once. Hardcoding "because it's a one-off case" is debt — in 6 months no one will know why that widget has `padding: EdgeInsets.all(13)`.
 
-### Cómo usar
+### How to use
 
 ```dart
 import '../../core/theme/app_colors.dart';
@@ -128,33 +128,33 @@ class TripCard extends StatelessWidget {
 }
 ```
 
-### Cuándo evolucionar a componentes (`shared/widgets/`)
+### When to evolve to components (`shared/widgets/`)
 
-No anticipadamente. Si un patrón visual (ej: card de viaje, chip de tag, fila de gasto) aparece en **2+ pantallas con la misma estructura**, ahí se extrae a `shared/widgets/<componente>.dart`. Antes no — citando regla del proyecto: si un patrón aparece una sola vez, queda concreto.
+Not anticipatorily. If a visual pattern (e.g., trip card, tag chip, expense row) appears in **2+ screens with the same structure**, then it's extracted to `shared/widgets/<component>.dart`. Not before — citing the project rule: if a pattern appears only once, it stays concrete.
 
-### Cuándo cambiar los tokens
+### When to change the tokens
 
-- **Llega la identidad visual definitiva** → editar `app_colors.dart` (seed + semánticos), `app_typography.dart` (fontFamily + asset en pubspec), eventualmente `app_radii.dart` y `app_spacing.dart` si el sistema lo pide.
-- **El diseñador entrega Figma con tokens nombrados** → mapear 1:1 a los archivos de `core/theme/`. Si la nomenclatura difiere, ajustar la nuestra para coincidir — no inventar paralelos.
-- **Aparece un nuevo color semántico del producto** (ej: "info" para notificaciones) → agregarlo en `AppColors`, no en el widget que lo necesitó primero.
+- **Final visual identity arrives** → edit `app_colors.dart` (seed + semantics), `app_typography.dart` (fontFamily + asset in pubspec), eventually `app_radii.dart` and `app_spacing.dart` if the system asks.
+- **The designer delivers Figma with named tokens** → map 1:1 to the files in `core/theme/`. If the naming differs, adjust ours to match — don't invent parallels.
+- **A new product semantic color appears** (e.g., "info" for notifications) → add it in `AppColors`, not in the widget that needed it first.
 
 ## Naming
 
-| Tipo | Patrón | Ejemplo |
+| Type | Pattern | Example |
 |---|---|---|
-| Pantalla | `<nombre>_screen.dart` | `expenses_screen.dart` |
-| Widget reutilizable | `<sustantivo>.dart` | `expense_card.dart` |
-| Notifier de Riverpod | `<plural>_notifier.dart` | `expenses_notifier.dart` |
+| Screen | `<name>_screen.dart` | `expenses_screen.dart` |
+| Reusable widget | `<noun>.dart` | `expense_card.dart` |
+| Riverpod notifier | `<plural>_notifier.dart` | `expenses_notifier.dart` |
 | Repository | `<plural>_repository.dart` | `expenses_repository.dart` |
-| Modelo de Firestore | `<singular>_model.dart` | `expense_model.dart` |
-| Lógica pura | `<sustantivo descriptivo>.dart` | `balance_calculator.dart` |
+| Firestore model | `<singular>_model.dart` | `expense_model.dart` |
+| Pure logic | `<descriptive_noun>.dart` | `balance_calculator.dart` |
 
-- Clases en `PascalCase`, archivos en `snake_case`. Convención estándar de Dart.
-- Nombres descriptivos, no abreviados. `expense_form_screen.dart`, no `exp_form.dart`.
+- Classes in `PascalCase`, files in `snake_case`. Standard Dart convention.
+- Descriptive, not abbreviated. `expense_form_screen.dart`, not `exp_form.dart`.
 
-## Patrones de Riverpod
+## Riverpod patterns
 
-### Provider de un repository
+### Repository provider
 
 ```dart
 final expensesRepositoryProvider = Provider<ExpensesRepository>((ref) {
@@ -163,9 +163,9 @@ final expensesRepositoryProvider = Provider<ExpensesRepository>((ref) {
 });
 ```
 
-### StreamNotifier para escucha en vivo
+### StreamNotifier for live listening
 
-Usar para listas que se actualizan en tiempo real (gastos del viaje, items del itinerario, miembros).
+Use for lists that update in real time (trip expenses, itinerary items, members).
 
 ```dart
 class ExpensesNotifier extends AutoDisposeFamilyStreamNotifier<List<Expense>, String> {
@@ -179,9 +179,9 @@ final expensesProvider = StreamNotifierProvider.autoDispose
     .family<ExpensesNotifier, List<Expense>, String>(ExpensesNotifier.new);
 ```
 
-### AsyncNotifier para acciones puntuales
+### AsyncNotifier for one-off actions
 
-Usar para mutaciones (crear, editar, borrar). Los métodos exponen el resultado y manejan estado loading/error.
+Use for mutations (create, edit, delete). Methods expose the result and handle loading/error state.
 
 ```dart
 class CreateExpenseNotifier extends AutoDisposeAsyncNotifier<void> {
@@ -197,48 +197,50 @@ class CreateExpenseNotifier extends AutoDisposeAsyncNotifier<void> {
 }
 ```
 
-### autoDispose por default
+### autoDispose by default
 
-Casi todos los providers van con `autoDispose` para no leakear listeners. La excepción son providers globales (auth, instancia de Firestore).
+Almost all providers go with `autoDispose` to avoid leaking listeners. The exception is global providers (auth, Firestore instance).
 
 ## Microcopy
 
-- **Voseo siempre.** Tenés, pedile, saltá, creá, andá. No mezclar con tuteo.
-- **Vocabulario LATAM compartido**, sin jerga local (no parche, parceros, chido, güey).
-- **Patrón de estados vacíos:** "Acá no hay nada todavía. + [explicación corta de qué va a aparecer y cómo empezar] + [botón]". Ver `docs/06-identidad-y-tono.md` §4.
-- **Microcopy ya validados del MVP** están en `docs/06-identidad-y-tono.md` §5. Usar esos textos exactos cuando se implemente la pantalla correspondiente.
-- **No prometer privacidad falsa.** Si algo lo va a ver el grupo, decirlo claro.
+- **Voseo always.** Tenés, pedile, saltá, creá, andá. Don't mix with tuteo.
+- **Shared LATAM vocabulary**, no local slang (no parche, parceros, chido, güey).
+- **Empty-state pattern:** "Acá no hay nada todavía. + [short explanation of what will appear and how to start] + [button]". See `docs/06-identidad-y-tono.md` §4.
+- **Validated MVP microcopy** lives in `docs/06-identidad-y-tono.md` §5. Use those exact strings when implementing the corresponding screen.
+- **Don't promise false privacy.** If something will be seen by the group, say it clearly.
 
 ## Tests
 
-- **Sí se testea:** lógica pura en `domain/`. Sobre todo el cálculo de saldos y la simplificación de transferencias — ahí es donde hay bugs que duelen.
-- **No se testea en MVP:** widgets, screens, integración. Es trabajo que rinde poco para el Caso 0.
-- **Estructura espejo en `test/`:** `test/features/expenses/domain/balance_calculator_test.dart`.
+- **What's tested:** pure logic in `domain/`. Especially balance calculation and transfer simplification — that's where the painful bugs live.
+- **What's NOT tested in MVP:** widgets, screens, integration. Low ROI for Case 0.
+- **Mirror structure in `test/`:** `test/features/expenses/domain/balance_calculator_test.dart`.
+- **Test names and inline comments are written in English.**
 
-## Lo que NO hacer
+## What NOT to do
 
-- No agregar Cloud Functions (sin backend en MVP).
-- No agregar paquete de internacionalización (`intl`/`l10n`). Solo español hardcodeado.
-- No agregar features fuera del scope del MVP. Lista en `docs/03-mvp-scope.md` §4.
-- No mezclar state managements (no agregar Bloc, ChangeNotifier, GetX).
-- No agregar dependencias "por si acaso". Cada paquete suma peso, riesgo y mantenimiento.
-- No abstraer prematuramente. Si un patrón aparece una sola vez, dejalo concreto. Si aparece la segunda, recién evaluar abstracción.
-- **No hardcodear valores visuales en widgets.** Colores, spacings, radii, estilos de texto siempre desde el theme o tokens en `core/theme/`. Ver § Design system y tokens.
-- No crear una librería de componentes custom (`AppButton`, `AppCard`, etc.) preventiva. Material 3 + tokens alcanza hasta que un patrón se repita 2+ veces.
+- Don't add Cloud Functions (no backend in MVP).
+- Don't add internationalization packages (`intl`/`l10n`). Spanish hardcoded only.
+- Don't add features outside MVP scope. List in `docs/03-mvp-scope.md` §4.
+- Don't mix state managements (no Bloc, ChangeNotifier, GetX).
+- Don't add dependencies "just in case". Each package adds weight, risk, and maintenance.
+- Don't abstract prematurely. If a pattern appears once, leave it concrete. If it appears a second time, then evaluate abstraction.
+- **Don't hardcode visual values in widgets.** Colors, spacings, radii, text styles always from theme or tokens in `core/theme/`. See § Design system and tokens.
+- Don't create a custom component library (`AppButton`, `AppCard`, etc.) preventively. Material 3 + tokens is enough until a pattern repeats 2+ times.
 
-## Dependencias permitidas
+## Allowed dependencies
 
-Las que decidimos. Cualquier otra requiere justificación explícita.
+The ones we decided. Anything else requires explicit justification.
 
 - `flutter` (SDK)
 - `firebase_core`, `firebase_auth`, `cloud_firestore`, `firebase_storage`
-- `flutter_riverpod`, `riverpod_annotation` (si decidimos generación)
-- `go_router` (navegación)
-- `intl` (formato de fechas y números, no internacionalización)
+- `flutter_riverpod`, `riverpod_annotation` (if we decide on codegen)
+- `go_router` (navigation)
+- `intl` (date and number formatting, NOT internationalization)
+- `decimal` (money handling, mandatory for any monetary calculation)
 
-## Referencias rápidas
+## Quick references
 
-- Modelo de datos: `docs/05-modelo-datos-2.md`
+- Data model: `docs/05-modelo-datos-2.md`
 - Wireframes: `docs/04-wireframes-mvp-2.md`
-- Tono y microcopy: `docs/06-identidad-y-tono.md`
+- Tone and microcopy: `docs/06-identidad-y-tono.md`
 - Scope: `docs/03-mvp-scope.md`

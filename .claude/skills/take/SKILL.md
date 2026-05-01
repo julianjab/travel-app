@@ -1,112 +1,113 @@
 ---
 name: take
 description: >
-  Tomar una issue del backlog de Vamos y arrancar a trabajarla en un worktree
-  aislado. Lee la issue de GitHub, crea el worktree con branch siguiendo la
-  convención `<ID>-<slug>`, mueve la card del Project a "In progress", y deja
-  el cuerpo de la issue como contexto en el worktree para el agente que sigue.
+  Pick up an issue from the Vamos backlog and start working on it in an isolated
+  worktree. Reads the issue from GitHub, creates the worktree with a branch
+  following the `<ID>-<slug>` convention, moves the Project card to "In
+  progress", and drops the issue body into the worktree as context for the
+  agent that follows.
   Triggers: "/take 14", "/take F1-06", "tomar issue 14", "arrancar la 14",
-  "vamos por F1-06". NO mergea ni abre PR — para eso usá /pr o /ship.
-argument-hint: "<issue-number-o-ID> [--base main]"
+  "vamos por F1-06". Does NOT merge or open a PR — use /done for that.
+argument-hint: "<issue-number-or-ID> [--base main]"
 disable-model-invocation: false
 ---
 
-## /take — Arrancar a trabajar una issue
+## /take — Start working an issue
 
-Toma una issue del repo `julianjab/travel-app`, crea un worktree aislado y deja todo listo para que el agente siguiente trabaje sin perder contexto.
+Picks an issue from `julianjab/travel-app`, creates an isolated worktree, and leaves everything ready so the next agent can work without losing context.
 
 **Repo:** `julianjab/travel-app`
 **Project:** `Vamos MVP` (#1, owner `julianjab`)
-**Convención de branch:** `<ID>-<slug>` — ej. `F1-06-onboarding-miembro`
+**Branch convention:** `<ID>-<slug>` — e.g. `F1-06-onboarding-miembro`
 
 ---
 
-## Argumentos
+## Arguments
 
-`$ARGUMENTS` puede ser:
+`$ARGUMENTS` may be:
 
-| Forma | Ejemplo | Comportamiento |
+| Form | Example | Behavior |
 |---|---|---|
-| Número de issue | `14` | `gh issue view 14` |
-| ID del backlog | `F1-06` | Buscar issue cuyo título empiece con `[F1-06]` |
-| Vacío | _(nada)_ | Listar issues `Todo` del milestone `MVP Caso 0` y pedir cuál |
+| Issue number | `14` | `gh issue view 14` |
+| Backlog ID | `F1-06` | Find issue whose title starts with `[F1-06]` |
+| Empty | _(nothing)_ | List `Todo` issues in milestone `MVP Caso 0` and ask which one |
 
-Flag opcional: `--base main` (default).
+Optional flag: `--base main` (default).
 
 ---
 
-## Pasos
+## Steps
 
-Ejecutar en orden, abortar si alguno falla.
+Run in order. Abort if any step fails.
 
-### 1. Resolver la issue
+### 1. Resolve the issue
 
 ```bash
 unset GH_TOKEN GITHUB_TOKEN
 ```
 
-- Si `$ARGUMENTS` es un número → `ISSUE_NUM=$ARGUMENTS`.
-- Si matchea `^[A-Z]+[0-9]*-[0-9]+$` (ej. `F1-06`):
+- If `$ARGUMENTS` is a number → `ISSUE_NUM=$ARGUMENTS`.
+- If it matches `^[A-Z]+[0-9]*-[0-9]+$` (e.g. `F1-06`):
   ```bash
   ISSUE_NUM=$(gh issue list --repo julianjab/travel-app --state all \
     --search "[$ID]" --json number,title \
     --jq ".[] | select(.title | startswith(\"[$ID]\")) | .number" | head -1)
   ```
-- Si está vacío → mostrar `gh issue list --repo julianjab/travel-app --milestone "MVP Caso 0" --state open --label mvp` y preguntar cuál.
+- If empty → show `gh issue list --repo julianjab/travel-app --milestone "MVP Caso 0" --state open --label mvp` and ask which one.
 
-Validar: `ISSUE_NUM` no vacío. Si no, abortar con mensaje claro.
+Validate: `ISSUE_NUM` not empty. Otherwise abort with a clear message.
 
-### 2. Leer la issue
+### 2. Read the issue
 
 ```bash
 gh issue view $ISSUE_NUM --repo julianjab/travel-app \
   --json number,title,body,labels,milestone,assignees,url > /tmp/take-issue.json
 ```
 
-Extraer:
-- `TITLE` (incluye `[ID]` al inicio)
-- `ID` — primera ocurrencia de `\[([A-Z0-9-]+)\]` en el título
-- `SLUG` — slugificar el resto del título (lowercase, sin acentos, espacios → `-`, max 40 chars)
-- `BRANCH` = `$ID-$SLUG` (ej. `F1-06-onboarding-miembro`)
+Extract:
+- `TITLE` (includes `[ID]` at the start)
+- `ID` — first match of `\[([A-Z0-9-]+)\]` in the title
+- `SLUG` — slugify the rest of the title (lowercase, no accents, spaces → `-`, max 40 chars)
+- `BRANCH` = `$ID-$SLUG` (e.g. `F1-06-onboarding-miembro`)
 
-### 3. Crear worktree
+### 3. Create the worktree
 
-Reusar el skill existente:
+Reuse the existing skill:
 
 ```
 /worktree init $BRANCH --base main
 ```
 
-(O ejecutar directo con `git worktree add ../.worktrees/$BRANCH -b $BRANCH origin/main` si `/worktree` no está disponible.)
+(Or run directly with `git worktree add ../.worktrees/$BRANCH -b $BRANCH origin/main` if `/worktree` is not available.)
 
-### 4. Inyectar contexto en el worktree
+### 4. Inject context into the worktree
 
-Escribir `.claude/CONTEXT.md` dentro del worktree con:
+Write `.claude/CONTEXT.md` inside the worktree with:
 
 ```markdown
-# Contexto de trabajo — [$ID] $TITLE
+# Work context — [$ID] $TITLE
 
 **Issue:** $URL
 **Branch:** $BRANCH
 **Milestone:** MVP Caso 0
 
-## Cuerpo de la issue
+## Issue body
 
-<contenido del campo body>
+<contents of the body field>
 
-## Convenciones del flujo
+## Workflow conventions
 
-- Commit: `<type>(<ID>): <descripción>` — ej. `feat(F1-06): persistir tags del miembro`.
-- PR: incluir `Closes #$ISSUE_NUM` en el body para auto-cerrar.
-- Antes de PR: correr `/review` (lint + tests).
-- Para abrir PR: `/pr` o `/ship`.
+- Commit: `<type>(<ID>): <description>` — e.g. `feat(F1-06): persist member tags on join`.
+- PR: include `Closes #$ISSUE_NUM` in the body to auto-close on merge.
+- Before opening the PR: run `/review` (lint + tests).
+- To open the PR: `/done`.
 
-## Cuándo terminar
+## When to stop
 
-Criterio de hecho está en el cuerpo de la issue (línea **Done:**).
+Acceptance criterion lives in the issue body (line **Done:**).
 ```
 
-### 5. Mover la card a "In progress" en el Project
+### 5. Move the card to "In progress" in the Project
 
 ```bash
 PROJECT_ID="PVT_kwHOAIgSic4BWXD0"  # Vamos MVP
@@ -123,40 +124,40 @@ gh project item-edit --id "$ITEM_ID" --project-id "$PROJECT_ID" \
   --field-id "$STATUS_FIELD_ID" --single-select-option-id "$IN_PROGRESS_OPT"
 ```
 
-Si falla (campo Status no existe aún) → log warning, no abortar. La auto-asignación de status se puede activar después en el Project.
+If it fails (Status field doesn't exist yet) → log a warning, do not abort. Status auto-assignment can be enabled later in the Project.
 
-### 6. Asignarse la issue (si no está)
+### 6. Self-assign the issue (if not already assigned)
 
 ```bash
 gh issue edit $ISSUE_NUM --repo julianjab/travel-app --add-assignee @me
 ```
 
-### 7. Reportar al usuario
+### 7. Report to the user
 
-Imprimir:
+Print:
 
 ```
-✓ Tomada issue #$ISSUE_NUM — [$ID] $TITLE
+✓ Picked up issue #$ISSUE_NUM — [$ID] $TITLE
   Branch:   $BRANCH
   Worktree: <path>
   Project:  In progress
-  Contexto: <path>/.claude/CONTEXT.md
+  Context:  <path>/.claude/CONTEXT.md
 
-Próximo paso: cd <path> && empezar a trabajar.
-Cuando termines: /pr (auto-infiere `Closes #$ISSUE_NUM`).
+Next step: cd <path> and start working.
+When done: /done (auto-infers `Closes #$ISSUE_NUM`).
 ```
 
 ---
 
-## Reglas duras
+## Hard rules
 
-- **No tocar el repo principal.** Todo trabajo de la issue va en el worktree.
-- **No mergear desde acá.** El skill solo abre el flujo; cerrar es trabajo de `/pr` + merge en GitHub.
-- **No crear branches sin ID.** Si la issue no tiene `[ID]` en el título → abortar y avisar al usuario que arregle el título primero.
-- **No saltarse el `unset GH_TOKEN GITHUB_TOKEN`** al inicio: el token del entorno no tiene scope `project` y rompe el paso 5.
+- **Do not touch the main repo.** All work for the issue lives in the worktree.
+- **Do not merge from here.** This skill only opens the flow; closing is `/done`'s job + manual merge in GitHub.
+- **No branches without an ID.** If the issue has no `[ID]` in its title → abort and ask the user to fix the title first.
+- **Do not skip `unset GH_TOKEN GITHUB_TOKEN`** at the start: the env token does not have `project` scope and step 5 will fail.
 
-## Cuándo NO usar /take
+## When NOT to use /take
 
-- Hotfix sin issue → crear issue primero (1 línea, label `mvp`), luego `/take`.
-- Refactor genérico que toca varios items → no encaja en una sola issue. Mejor `/worktree init` directo.
-- Spike / exploración → `/worktree init spike-<tema>`.
+- Hotfix without an issue → create the issue first (one-liner, label `mvp`), then `/take`.
+- Refactor that touches multiple items → doesn't fit one issue. Use `/worktree init` directly.
+- Spike / exploration → `/worktree init spike-<topic>`.

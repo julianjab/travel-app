@@ -1,32 +1,32 @@
-# Convenciones — Landing web (Astro)
+# Conventions — Web landing (Astro)
 
-> Este archivo se aplica a todo lo que está bajo `web/`. Asumí que el `CLAUDE.md` raíz ya fue leído.
+> This file applies to everything under `web/`. Assume the root `CLAUDE.md` has already been read.
 
-## Qué es
+## What it is
 
-Sitio público de Vamos. Cubre dos cosas:
+Vamos's public site. Covers two things:
 
-1. **Página de invitación** (`/j/[code]`) — la que abre el destinatario del link compartido por WhatsApp en F1.4. Resuelve el `inviteCode` contra Firestore, muestra el viaje (nombre, destino, fechas, foto, quién creó), y deep-linkea a la app móvil. Si la app no está instalada, redirige a App Store / Play Store.
-2. **Landing de marketing** — home con qué es Vamos + features. **Fuera del scope core del MVP** — para Caso 0 alcanza con un placeholder mínimo. Marketing real entra post-Caso 0.
+1. **Invite page** (`/j/[code]`) — the one the link recipient opens after a WhatsApp share in F1.4. Resolves the `inviteCode` against Firestore, shows the trip (name, destination, dates, photo, who created it), and deep-links to the mobile app. If the app is not installed, redirects to App Store / Play Store.
+2. **Marketing landing** — home with what Vamos is + features. **Outside the core scope of the MVP** — for Case 0 a minimal placeholder is enough. Real marketing enters post-Case 0.
 
-La landing **no es** una versión web de la app. No permite votar items, registrar gastos, ni editar perfil. Es lectura más deep-link.
+The landing **is not** a web version of the app. It does not allow voting on items, registering expenses, or editing the profile. It's read-only plus deep-link.
 
 ## Stack
 
-- **Astro** — framework SSG. Output estático por default, zero JS al cliente salvo donde sea inevitable.
-- **TypeScript** — strict mode en todos los componentes y scripts.
-- **Tailwind CSS** — utility-first. Un único sistema de estilos.
-- **Firebase JS SDK** — solo para fetchear el viaje en `/j/[code]` desde el cliente. Mismo proyecto Firebase que la app.
+- **Astro** — SSG framework. Static output by default, zero JS to the client unless inevitable.
+- **TypeScript** — strict mode in every component and script.
+- **Tailwind CSS** — utility-first. Single styling system.
+- **Firebase JS SDK** — only to fetch the trip in `/j/[code]` from the client. Same Firebase project as the app.
 
-### Por qué Astro y no Next.js
+### Why Astro and not Next.js
 
-- Carga: HTML puro por default, Lighthouse 100 sin esfuerzo. Next.js obliga a manejar el split server/client y el bundle pesa más.
-- SEO: SSG nativo, semantic HTML, metadata por página fácil. Para una landing es exactamente lo que queremos.
-- Búsquedas por IA: HTML estático bien estructurado es lo que crawlers de LLMs (Perplexity, ChatGPT, Claude, etc.) pueden indexar. Astro nos deja agregar JSON-LD y `llms.txt` triviales.
-- Implementación: file-based routing, componentes `.astro` simples, deploy estático. Curva de aprendizaje corta.
-- Trade-off aceptado: comunidad más chica que Next. Si en algún momento necesitamos un dashboard administrativo con SSR pesado, ese se construye aparte.
+- Loading: pure HTML by default, Lighthouse 100 with no effort. Next.js forces you to manage server/client splits and the bundle weighs more.
+- SEO: native SSG, semantic HTML, easy per-page metadata. For a landing it's exactly what we want.
+- AI-search: well-structured static HTML is what LLM crawlers (Perplexity, ChatGPT, Claude, etc.) can index. Astro lets us add JSON-LD and `llms.txt` trivially.
+- Implementation: file-based routing, simple `.astro` components, static deploy. Short learning curve.
+- Accepted trade-off: smaller community than Next. If at some point we need an admin dashboard with heavy SSR, that one is built separately.
 
-## Estructura del proyecto
+## Project structure
 
 ```
 web/
@@ -35,88 +35,92 @@ web/
 ├── pnpm-lock.yaml
 ├── tsconfig.json
 ├── tailwind.config.cjs
-├── public/                       ← assets estáticos (favicon, og-image, llms.txt)
+├── public/                       ← static assets (favicon, og-image, llms.txt)
 │   ├── favicon.svg
-│   └── llms.txt                  ← resumen del producto para crawlers de IA
+│   └── llms.txt                  ← product summary for AI crawlers
 └── src/
     ├── layouts/
-    │   └── BaseLayout.astro      ← <html>, <head>, metadata, fuentes, footer
+    │   └── BaseLayout.astro      ← <html>, <head>, metadata, fonts, footer
     ├── pages/
-    │   ├── index.astro           ← home (placeholder en MVP)
+    │   ├── index.astro           ← home (placeholder in MVP)
     │   └── j/
-    │       └── [code].astro      ← página de invitación (única dinámica)
-    ├── components/               ← reutilizables entre páginas
+    │       └── [code].astro      ← invite page (only dynamic one)
+    ├── components/               ← reusable across pages
     ├── lib/
-    │   └── firebase.ts           ← init del SDK + helper para resolver invite
+    │   └── firebase.ts           ← SDK init + invite-resolution helper
     └── styles/
-        └── global.css            ← `@import "tailwindcss"` + tipografía base
+        └── global.css            ← `@import "tailwindcss"` + base typography
 ```
 
-## Reglas duras
+## Hard rules
 
-1. **HTML estático por default.** Si una página puede ser SSG pura, lo es. Solo cargamos JS al cliente cuando hay interactividad inevitable (caso único en MVP: `/j/[code]` que fetchea el viaje).
-2. **No duplicar microcopy de la app.** Los textos que aparecen en la landing y en la app deben venir del mismo lugar. Por ahora no hay shared package — copia + referencia a `docs/06-identidad-y-tono.md`. Si crece, evaluar paquete compartido.
-3. **No replicar lógica de Firestore.** La landing toca Firestore solo para resolver el invite (lectura de `invites/{code}` y proyección mínima del trip). Nunca escribe.
-4. **No reimplementar funcionalidad de la app.** Cualquier acción real (votar, registrar gasto, editar perfil) está fuera del alcance de la landing. Se redirige al deep-link de la app.
-5. **Una página por archivo en `src/pages/`.** Sub-componentes específicos de una página viven en `src/components/<page>/`. Solo va a `src/components/` raíz lo que se reutiliza entre páginas.
-6. **Imágenes optimizadas.** Usar `<Image>` de Astro para imports estáticos. Para imágenes que vienen de Storage (foto de portada del viaje), `<img loading="lazy">` con dimensiones explícitas para evitar CLS.
+1. **Static HTML by default.** If a page can be pure SSG, it is. We only load client JS when there's unavoidable interactivity (single MVP case: `/j/[code]` fetching the trip).
+2. **Don't duplicate app microcopy.** Strings appearing in both the landing and the app must come from the same source. For now there is no shared package — copy + reference `docs/06-identidad-y-tono.md`. If it grows, evaluate a shared package.
+3. **Don't replicate Firestore logic.** The landing only touches Firestore to resolve the invite (read of `invites/{code}` and minimal projection of the trip). Never writes.
+4. **Don't reimplement app functionality.** Any real action (vote, register expense, edit profile) is out of scope for the landing. Redirect to the app's deep link.
+5. **One page per file in `src/pages/`.** Page-specific sub-components live in `src/components/<page>/`. Only what's reused across pages goes in `src/components/` root.
+6. **Optimized images.** Use Astro's `<Image>` for static imports. For images coming from Storage (trip cover photo), `<img loading="lazy">` with explicit dimensions to avoid CLS.
 
-## SEO + búsquedas por IA
+## SEO + AI search
 
-La landing tiene que indexar bien tanto en Google como en LLMs. Reglas concretas:
+The landing must index well in both Google and LLMs. Concrete rules:
 
-- **Metadata por página** en `BaseLayout.astro`: `title`, `description`, `og:image`, `og:url`, `twitter:card`. La home tiene metadata propia; `/j/[code]` tiene metadata genérica (no exponer el contenido del viaje a crawlers — los viajes son privados).
-- **JSON-LD** estructurado en la home: `Organization`, `WebApplication`, eventualmente `FAQPage`. Inyectado como `<script type="application/ld+json">` en el layout.
-- **`public/llms.txt`** con resumen del producto para crawlers de IA (qué es Vamos, problema que resuelve, audiencia, link a docs públicos si los hay). Formato siguiendo el draft de `llmstxt.org`.
-- **`public/robots.txt`** explícito: permitir todo en `/`, bloquear `/j/*` (los viajes son privados, no indexar el invite code aunque sea opaco).
-- **Sitemap** generado por la integración `@astrojs/sitemap`. Excluir `/j/*`.
-- **Texto real**, no SVG con texto. Encabezados semánticos (`h1`, `h2`, etc.) y prose en HTML, no imágenes.
+- **Per-page metadata** in `BaseLayout.astro`: `title`, `description`, `og:image`, `og:url`, `twitter:card`. The home has its own metadata; `/j/[code]` has generic metadata (don't expose trip content to crawlers — trips are private).
+- **Structured JSON-LD** on the home: `Organization`, `WebApplication`, eventually `FAQPage`. Injected as `<script type="application/ld+json">` in the layout.
+- **`public/llms.txt`** with a product summary for AI crawlers (what Vamos is, problem it solves, audience, link to public docs if any). Format following the `llmstxt.org` draft.
+- **Explicit `public/robots.txt`**: allow everything in `/`, block `/j/*` (trips are private, don't index the invite code even if opaque).
+- **Sitemap** generated by `@astrojs/sitemap` integration. Exclude `/j/*`.
+- **Real text**, not text-as-SVG. Semantic headings (`h1`, `h2`, etc.) and prose in HTML, not images.
 
 ## Deploy
 
-Firebase Hosting. Ver `firebase/CLAUDE.md` § Hosting para detalles.
+Firebase Hosting. See `firebase/CLAUDE.md` § Hosting for details.
 
 ```
 cd web/
-pnpm build              # genera dist/
+pnpm build              # generates dist/
 cd ../firebase/
 firebase deploy --only hosting
 ```
 
-`firebase.json` ya tiene la config de hosting apuntando a `../web/dist`.
+`firebase.json` already has the hosting config pointing to `../web/dist`.
 
-## Microcopy y tono
+## Microcopy and tone
 
-Mismo tono que la app: voseo, vocabulario LATAM compartido, sin jerga local. Ver `docs/06-identidad-y-tono.md` para el patrón completo.
+Same tone as the app: voseo, shared LATAM vocabulary, no local slang. See `docs/06-identidad-y-tono.md` for the full pattern.
 
-Particularidades de la landing:
+Landing-specific notes:
 
-- **Página de invitación**: tono cálido y específico al viaje. "Te invitaron a *Brasil con los del barrio*" + foto + fechas + creador. CTA principal: "Abrir en la app". CTA secundario (cuando la app no está instalada): "Descargar la app".
-- **Home (placeholder MVP)**: una frase de qué es Vamos + un CTA hacia las stores. Marketing real post-Caso 0.
+- **Invite page**: warm and trip-specific tone. "Te invitaron a *Brasil con los del barrio*" + photo + dates + creator. Primary CTA: "Abrir en la app". Secondary CTA (when the app is not installed): "Descargar la app".
+- **Home (MVP placeholder)**: one sentence about what Vamos is + a CTA to the stores. Real marketing post-Case 0.
 
-## Lo que NO hacer
+## What NOT to do
 
-- No agregar SSR. Si una página parece necesitar SSR, primero evaluar si se puede resolver client-side.
-- No agregar autenticación en la landing. La auth es responsabilidad de la app móvil.
-- No replicar funcionalidad de la app (votar, gastos, etc.).
-- No agregar otro framework de estilos sobre Tailwind.
-- No agregar dependencias "por si acaso". Cada paquete suma peso al bundle y trabajo de mantenimiento.
-- No agregar internacionalización. Solo español, igual que la app.
-- No agregar analítica de terceros (Google Analytics, etc.) en MVP. Si después decidimos métricas, se reabre.
+- Don't add SSR. If a page seems to need SSR, first evaluate if it can be solved client-side.
+- Don't add authentication on the landing. Auth is the mobile app's responsibility.
+- Don't replicate app functionality (voting, expenses, etc.).
+- Don't add another styling framework on top of Tailwind.
+- Don't add dependencies "just in case". Each package adds bundle weight and maintenance work.
+- Don't add internationalization. Spanish only, same as the app.
+- Don't add third-party analytics (Google Analytics, etc.) in MVP. If we decide on metrics later, that reopens.
 
-## Dependencias permitidas
+## Allowed dependencies
 
-Las que decidimos. Cualquier otra requiere justificación explícita.
+The ones we decided. Anything else requires explicit justification.
 
 - `astro`
 - `@astrojs/tailwind`, `tailwindcss`
 - `@astrojs/sitemap`
-- `firebase` (solo módulos `app`, `firestore` — no `auth`, no `storage`)
+- `firebase` (only `app`, `firestore` modules — no `auth`, no `storage`)
 - `typescript`
 
-## Referencias
+## Comments in code
 
-- Tono y microcopy: `docs/06-identidad-y-tono.md`
-- Modelo de datos (página de invitación): `docs/05-modelo-datos-2.md` §2.2 (`invites/{inviteCode}`, `trips/{tripId}`)
-- Wireframes (F1.4 onboarding del invitado): `docs/04-wireframes-mvp-2.md`
+All inline comments in TypeScript, Astro components, and config files are written in English. User-facing strings (microcopy) stay in Spanish (voseo).
+
+## References
+
+- Tone and microcopy: `docs/06-identidad-y-tono.md`
+- Data model (invite page): `docs/05-modelo-datos-2.md` §2.2 (`invites/{inviteCode}`, `trips/{tripId}`)
+- Wireframes (F1.4 guest onboarding): `docs/04-wireframes-mvp-2.md`
 - Hosting / deploy: `firebase/CLAUDE.md`
