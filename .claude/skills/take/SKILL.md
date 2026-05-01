@@ -8,7 +8,7 @@ description: >
   agent that follows.
   Triggers: "/take 14", "/take F1-06", "tomar issue 14", "arrancar la 14",
   "vamos por F1-06". Does NOT merge or open a PR — use /done for that.
-argument-hint: "<issue-number-or-ID> [--base main]"
+argument-hint: "<issue-number-or-ID> [--base main] [--foreground] [--no-implement]"
 disable-model-invocation: false
 ---
 
@@ -132,7 +132,7 @@ If it fails (Status field doesn't exist yet) → log a warning, do not abort. St
 gh issue edit $ISSUE_NUM --repo julianjab/travel-app --add-assignee @me
 ```
 
-### 7. Report to the user
+### 7. Report setup
 
 Print:
 
@@ -142,10 +142,90 @@ Print:
   Worktree: <path>
   Project:  In progress
   Context:  <path>/.claude/CONTEXT.md
-
-Next step: cd <path> and start working.
-When done: /done (auto-infers `Closes #$ISSUE_NUM`).
 ```
+
+### 8. Hand off to implementation
+
+Three modes:
+
+| Flag | Behavior |
+|---|---|
+| _(default)_ | Spawn a **background subagent** that implements the issue while the main session stays free. |
+| `--foreground` | The current session continues working in the worktree directly. |
+| `--no-implement` | Stop after step 7. The user takes over manually. |
+
+#### Default — background subagent
+
+Pick the right subagent based on the epic label:
+
+| Label | `subagent_type` |
+|---|---|
+| `epic:setup` | `general-purpose` |
+| `epic:F1`, `epic:F2` | `flutter-builder` (UI) or `firestore-architect` (data) — read body to choose |
+| `epic:F3` | `domain-logic` (algorithm) or `flutter-builder` (UI) — read body |
+| `epic:cross` | depends on body |
+
+Spawn with the `Agent` tool, `run_in_background: true`. The prompt must be self-contained because the subagent does NOT see this conversation. Template:
+
+```
+You are implementing GitHub issue #<ISSUE_NUM> for julianjab/travel-app.
+
+## Working directory
+Absolute path: <WORKTREE_PATH>
+Branch: <BRANCH>
+ALL work happens here. Do not touch the main repo.
+
+## Your task
+<full body of the issue, copied verbatim>
+
+## Context
+1. Read <WORKTREE_PATH>/.claude/CONTEXT.md first.
+2. Read the project root CLAUDE.md and the relevant area CLAUDE.md (app/, firebase/, or web/).
+3. If the issue references a wireframe (Fx.y), read docs/04-wireframes-mvp-2.md.
+4. If it touches the data model, read docs/05-modelo-datos-2.md AND firebase/CLAUDE.md.
+
+## Workflow
+- Validate scope against docs/03-mvp-scope.md before writing code. If something
+  smells out of scope, STOP and report — do not expand.
+- Commit in small steps: `<type>(<ID>): <description>` (Conventional Commits + ID).
+- Acceptance criterion is the line starting with **Done:** in the issue body.
+
+## When the Done criterion is covered
+- Run lint + tests for the area you touched (`flutter analyze && flutter test`,
+  or `pnpm lint && pnpm typecheck` for web).
+- Push the branch: `git push -u origin <BRANCH>`.
+- Open a PR with `gh pr create`:
+    --base main --head <BRANCH>
+    --title "<issue title>"
+    --body "Closes #<ISSUE_NUM>\n\n<summary>\n\n<checklist>"
+    --draft   (always draft — human reviews and marks ready)
+
+## Hard limits
+- Never push to main.
+- Never merge the PR.
+- Never use `--no-verify` or skip hooks.
+- Never modify files outside the worktree.
+- If you get stuck, write what you tried in the PR description and exit.
+
+Report back: PR URL + summary of changes + anything skipped or flagged.
+```
+
+After spawning, print:
+
+```
+✓ Background agent started on #$ISSUE_NUM
+  Subagent: <type>
+  Worktree: <path>
+  You can keep working. You'll be notified when the agent finishes.
+```
+
+#### `--foreground`
+
+Same prompt structure, but the current session continues directly: `cd` to worktree, read CONTEXT.md, implement, run `/done`. Use this when you want to drive the implementation interactively.
+
+#### `--no-implement`
+
+Stop after step 7 with: "Setup done. Run `/take <id>` (default) to spawn a background agent, or `/take <id> --foreground` to work in this session."
 
 ---
 
