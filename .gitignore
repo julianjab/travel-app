@@ -45,3 +45,7 @@ Thumbs.db
 # Env
 .env
 .env.local
+
+# Local logs (Claude / agents / tooling)
+.logs/
+**/.logs/
