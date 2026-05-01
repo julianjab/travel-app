@@ -49,3 +49,6 @@ Thumbs.db
 # Local logs (Claude / agents / tooling)
 .logs/
 **/.logs/
+
+# Git worktrees (created by /take, /worktree)
+.worktrees/

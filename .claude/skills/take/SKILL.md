@@ -78,7 +78,7 @@ Reuse the existing skill:
 /worktree init $BRANCH --base main
 ```
 
-(Or run directly with `git worktree add ../.worktrees/$BRANCH -b $BRANCH origin/main` if `/worktree` is not available.)
+(Or run directly with `git worktree add .worktrees/$BRANCH -b $BRANCH origin/main` if `/worktree` is not available. Worktrees live under `.worktrees/` inside the main repo, matching the `ia-tools/skills/worktree` convention. The folder is gitignored.)
 
 ### 4. Inject context into the worktree
 
