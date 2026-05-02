@@ -35,8 +35,6 @@ class MockTripRepository implements TripRepository {
 
   @override
   Stream<List<Trip>> watchUserTrips(String userId) {
-    // Emit the current snapshot synchronously. In tests that use
-    // StreamNotifier, this resolves to AsyncValue.data([...]) immediately.
     return Stream.value(List<Trip>.from(_trips));
   }
 }

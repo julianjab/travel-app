@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vamos/app.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
+import 'package:vamos/dev/mocks/mock_trip_repository.dart';
+import 'package:vamos/dev/mocks/trip_fixtures.dart';
 import 'package:vamos/features/trips/application/my_trips_notifier.dart';
-
-import '../test/data/mocks/mock_trip_repository.dart';
-import '../test/data/mocks/trip_fixtures.dart';
 
 /// Development entry point — runs the app without Firebase.
 ///
@@ -16,7 +15,7 @@ import '../test/data/mocks/trip_fixtures.dart';
 ///   flutter run -t lib/main_dev.dart
 ///
 /// What's active:
-///   - tripRepositoryProvider → MockTripRepository with 3 fixture trips
+///   - tripRepositoryProvider → MockTripRepository with randomized fake trips
 ///   - currentUserIdProvider  → 'user_dev' (treated as authenticated)
 ///
 /// What's NOT active:
@@ -35,9 +34,11 @@ void main() {
         // Inject a fake user ID so MyTripsNotifier skips the empty-string path.
         currentUserIdProvider.overrideWithValue('user_dev'),
 
-        // Replace Firestore trips repo with the in-memory mock.
+        // Replace Firestore trips repo with randomized fake trips.
+        // TripFixtures.random(n) picks varied LATAM names/destinations/currencies
+        // each run so the UI is tested with realistic, diverse data.
         tripRepositoryProvider.overrideWithValue(
-          MockTripRepository()..setTrips(TripFixtures.sortedSet()),
+          MockTripRepository()..setTrips(TripFixtures.random(6)),
         ),
       ],
       child: const VamosApp(),
