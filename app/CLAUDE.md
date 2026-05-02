@@ -209,10 +209,126 @@ Almost all providers go with `autoDispose` to avoid leaking listeners. The excep
 - **Validated MVP microcopy** lives in `docs/06-identidad-y-tono.md` §5. Use those exact strings when implementing the corresponding screen.
 - **Don't promise false privacy.** If something will be seen by the group, say it clearly.
 
+## Dependencias y override pattern
+
+### When to declare a repository as an interface
+
+Every data-layer repository has **two files**:
+
+```
+app/lib/data/repositories/
+├── <plural>_repository.dart              ← abstract class (the contract)
+└── firestore_<plural>_repository.dart    ← Firestore impl + Riverpod provider
+```
+
+The abstract class is the public surface. Notifiers, widgets, and tests depend on
+it. The `Firestore*` implementation is the only file that imports `cloud_firestore`.
+
+Rule: **if the feature talks to Firestore, there must be an abstract repo for it**.
+Non-data abstractions (router, theme, auth state) are NOT abstracted this way.
+
+### Provider always returns the abstract type
+
+```dart
+// In firestore_trip_repository.dart
+final tripRepositoryProvider = Provider<TripRepository>((ref) {
+  return FirestoreTripRepository(ref.watch(firestoreProvider));
+});
+```
+
+Consumers never reference `FirestoreTripRepository`. They only import
+`trip_repository.dart` (the abstract type) and `firestore_trip_repository.dart`
+(for the provider symbol).
+
+### How to override in tests
+
+```dart
+// In your test file:
+final mock = MockTripRepository()..setTrips([trip1, trip2]);
+
+await tester.pumpWidget(
+  ProviderScope(
+    overrides: [
+      tripRepositoryProvider.overrideWithValue(mock),
+      currentUserIdProvider.overrideWithValue('user_test'),
+    ],
+    child: MaterialApp.router(routerConfig: _testRouter),
+  ),
+);
+```
+
+No Firebase needed. No `fake_cloud_firestore` needed for simple tests.
+Mock lives in `test/data/mocks/mock_<plural>_repository.dart`.
+
+### How to override in dev mode (main_dev.dart)
+
+```dart
+// lib/main_dev.dart — run with: flutter run -t lib/main_dev.dart
+runApp(
+  ProviderScope(
+    overrides: [
+      currentUserIdProvider.overrideWithValue('user_dev'),
+      tripRepositoryProvider.overrideWithValue(
+        MockTripRepository()..setTrips(TripFixtures.sortedSet()),
+      ),
+    ],
+    child: const VamosApp(),
+  ),
+);
+```
+
+Imports the mock from `test/data/mocks/` — that's intentional. The mock is
+test infrastructure shared between unit tests and the dev entry point.
+
+### Hypothetical backend migration (Supabase, etc.)
+
+If the backend changes, the only file that changes is the Firestore impl
+and the provider line:
+
+```dart
+// Before:
+final tripRepositoryProvider = Provider<TripRepository>((ref) {
+  return FirestoreTripRepository(ref.watch(firestoreProvider));
+});
+
+// After migrating to Supabase:
+final tripRepositoryProvider = Provider<TripRepository>((ref) {
+  return SupabaseTripRepository(ref.watch(supabaseProvider));
+});
+```
+
+Zero changes in notifiers, screens, or tests. That's the point.
+
+### Platform variant (web vs mobile) — when needed
+
+If a future web variant needs a different impl, add a branch in the provider:
+
+```dart
+final tripRepositoryProvider = Provider<TripRepository>((ref) {
+  if (kIsWeb) return WebTripRepository(ref.watch(httpClientProvider));
+  return FirestoreTripRepository(ref.watch(firestoreProvider));
+});
+```
+
+Don't anticipate this. Add it when it's actually needed.
+
+### currentUserIdProvider
+
+A simple overrideable provider for the authenticated user ID:
+
+```dart
+// Default: empty string (unauthenticated). Override in tests and dev.
+final currentUserIdProvider = Provider<String>((ref) => '');
+```
+
+TODO(E0-06): replace the default with the real auth provider once Firebase
+Auth is wired: `ref.watch(authStateProvider).value?.uid ?? ''`.
+
 ## Tests
 
 - **What's tested:** pure logic in `domain/`. Especially balance calculation and transfer simplification — that's where the painful bugs live.
-- **What's NOT tested in MVP:** widgets, screens, integration. Low ROI for Case 0.
+- **Widget tests with override:** use `ProviderScope(overrides: [...])` + `MockXxxRepository`. See `test/features/trips/presentation/my_trips_screen_test.dart` as reference.
+- **What's NOT tested in MVP:** integration, golden, or screenshot tests. Low ROI for Case 0.
 - **Mirror structure in `test/`:** `test/features/expenses/domain/balance_calculator_test.dart`.
 - **Test names and inline comments are written in English.**
 
