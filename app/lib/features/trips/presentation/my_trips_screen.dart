@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:vamos/core/theme/app_spacing.dart';
+import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/features/trips/application/my_trips_notifier.dart';
 import 'package:vamos/features/trips/presentation/widgets/trip_card.dart';
 
@@ -74,7 +74,7 @@ class _ErrorState extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.all(VamosSpacing.xl),
         child: Text(
           'No se pudo cargar tus viajes. Verificá tu conexión.',
           style: text.bodyMedium?.copyWith(color: scheme.error),
@@ -96,7 +96,7 @@ class _EmptyState extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.all(VamosSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -105,7 +105,7 @@ class _EmptyState extends StatelessWidget {
               style: text.titleMedium,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: VamosSpacing.sm),
             Text(
               'Creá un viaje, o pedile el link a quien ya armó uno.',
               style: text.bodyMedium?.copyWith(
@@ -129,11 +129,11 @@ class _TripList extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.md,
+        horizontal: VamosSpacing.md,
+        vertical: VamosSpacing.md,
       ),
       itemCount: trips.length,
-      separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
+      separatorBuilder: (context, index) => const SizedBox(height: VamosSpacing.md),
       itemBuilder: (context, index) {
         final trip = trips[index];
         return TripCard(

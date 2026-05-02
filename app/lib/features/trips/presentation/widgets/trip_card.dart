@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:vamos/core/theme/app_colors.dart';
-import 'package:vamos/core/theme/app_radii.dart';
-import 'package:vamos/core/theme/app_spacing.dart';
+import 'package:vamos/core/theme/vamos_colors.dart';
+import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/trips/domain/trip_status.dart';
 import 'package:vamos/features/trips/presentation/widgets/cover_placeholder.dart';
@@ -38,9 +37,7 @@ class TripCard extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadii.lg),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: VamosRadius.brLg),
       child: InkWell(
         onTap: onTap,
         child: Column(
@@ -55,7 +52,7 @@ class TripCard extends StatelessWidget {
 
             // Info section
             Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
+              padding: const EdgeInsets.all(VamosSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -66,7 +63,7 @@ class TripCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: AppSpacing.xs),
+                  const SizedBox(height: VamosSpacing.xs),
 
                   // Date range + member count
                   Text(
@@ -75,7 +72,7 @@ class TripCard extends StatelessWidget {
                       color: scheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xs),
+                  const SizedBox(height: VamosSpacing.xs),
 
                   // Status badge
                   _StatusBadge(status: status, trip: trip, now: now),
@@ -131,11 +128,11 @@ class _StatusBadge extends StatelessWidget {
     final (label, color) = switch (status) {
       TripStatus.ongoing => (
           'En curso · día ${_dayOfTrip()} de ${_tripDuration()}',
-          AppColors.success,
+          VamosColors.green,
         ),
       TripStatus.upcoming => (
           'Por planear · en ${_daysUntil()}',
-          AppColors.warning,
+          VamosColors.warning,
         ),
       TripStatus.finished => ('Terminado', null),
       TripStatus.archived => ('Archivado', null),

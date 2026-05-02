@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:vamos/core/router/app_router.dart';
-import 'package:vamos/core/theme/app_theme.dart';
+import 'package:vamos/core/theme/vamos_theme.dart';
 
 /// App root.
 ///
-/// Wires [GoRouter] and [AppTheme]. [ProviderScope] is set up in [main.dart].
+/// Wires [GoRouter] and [VamosTheme]. [ProviderScope] is set up in [main.dart].
 class VamosApp extends StatelessWidget {
   const VamosApp({super.key});
 
@@ -13,9 +13,8 @@ class VamosApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Vamos',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
-      // TODO: dark theme activates when visual identity is finalized.
-      // darkTheme: AppTheme.dark(),
+      theme: VamosTheme.light,
+      darkTheme: VamosTheme.dark,
       routerConfig: router,
     );
   }

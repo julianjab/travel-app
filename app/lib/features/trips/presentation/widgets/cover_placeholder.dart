@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vamos/core/theme/app_radii.dart';
-import 'package:vamos/core/theme/app_spacing.dart';
+import 'package:vamos/core/theme/vamos_spacing.dart';
 
 /// Renders either the trip's cover photo or a colored placeholder with the
 /// trip name's first letter.
@@ -26,8 +25,8 @@ class CoverPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     final radius = borderRadius ??
         const BorderRadius.only(
-          topLeft: Radius.circular(AppRadii.lg),
-          topRight: Radius.circular(AppRadii.lg),
+          topLeft: VamosRadius.lg,
+          topRight: VamosRadius.lg,
         );
 
     if (coverPhotoURL != null && coverPhotoURL!.isNotEmpty) {
@@ -118,4 +117,4 @@ class _Placeholder extends StatelessWidget {
 
 /// Height of the trip cover image / placeholder in the F1.1 list cards.
 /// Defined here so it's easy to adjust without hunting for raw numbers.
-const double kTripCoverHeight = AppSpacing.xxl * 3; // 144 logical pixels
+const double kTripCoverHeight = VamosSpacing.xxl * 3; // 144 logical pixels
