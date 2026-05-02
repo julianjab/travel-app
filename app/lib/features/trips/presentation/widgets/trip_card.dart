@@ -155,6 +155,11 @@ class _Header extends StatelessWidget {
 }
 
 // Trip name + brand dot (the "O" mark of vam◯s applied to the trip title).
+//
+// If the name contains an "o"/"O", the LAST one is painted dotColor — connecting
+// visually with the VamosLogoMark circle. Rule: opportunistic, never forced.
+// If the title would truncate (measured via TextPainter), the coloring is skipped
+// to avoid a painted "o" disappearing mid-word in the ellipsis.
 class _TripTitle extends StatelessWidget {
   const _TripTitle({
     required this.name,
@@ -166,26 +171,70 @@ class _TripTitle extends StatelessWidget {
   final Color textColor;
   final Color dotColor;
 
+  static const _dotSize = 24.0;
+  // Space the logo mark takes from available row width.
+  static const _dotReserved = _dotSize + VamosSpacing.xs;
+
   @override
   Widget build(BuildContext context) {
-    // Dot size matches cap-height of displayMedium (32px ≈ 22px cap-height).
-    const dotSize = 24.0;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Text(
-            name,
-            style: VamosTypography.displayMedium.copyWith(color: textColor),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+    final style = VamosTypography.displayMedium.copyWith(color: textColor);
+    final lastO = name.lastIndexOf(RegExp(r'[oO]'));
+
+    final logoMark = Padding(
+      padding: const EdgeInsets.only(left: VamosSpacing.xs),
+      child: VamosLogoMark(size: _dotSize, color: dotColor),
+    );
+
+    if (lastO == -1) {
+      // No "o" in name — plain title.
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Text(name, style: style, maxLines: 2, overflow: TextOverflow.ellipsis),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: VamosSpacing.xs),
-          child: VamosLogoMark(size: dotSize, color: dotColor),
-        ),
-      ],
+          logoMark,
+        ],
+      );
+    }
+
+    // Use LayoutBuilder to know the available text width before deciding.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final textWidth = constraints.maxWidth - _dotReserved;
+        final painter = TextPainter(
+          text: TextSpan(text: name, style: style),
+          maxLines: 2,
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: textWidth);
+
+        final titleWidget = painter.didExceedMaxLines
+            // Truncated — skip coloring to avoid a painted "o" cut mid-word.
+            ? Text(name, style: style, maxLines: 2, overflow: TextOverflow.ellipsis)
+            : RichText(
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                text: TextSpan(
+                  children: [
+                    if (lastO > 0) TextSpan(text: name.substring(0, lastO), style: style),
+                    TextSpan(
+                      text: name[lastO],
+                      style: style.copyWith(color: dotColor),
+                    ),
+                    if (lastO < name.length - 1)
+                      TextSpan(text: name.substring(lastO + 1), style: style),
+                  ],
+                ),
+              );
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(child: titleWidget),
+            logoMark,
+          ],
+        );
+      },
     );
   }
 }
