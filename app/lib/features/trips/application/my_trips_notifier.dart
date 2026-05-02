@@ -3,22 +3,45 @@ import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/features/trips/domain/trip_status.dart';
 
+// ---------------------------------------------------------------------------
+// Auth provider — overrideable for tests and dev mode
+// ---------------------------------------------------------------------------
+
+/// Provides the current user's ID.
+///
+/// Default is an empty string (not authenticated). Override in tests or the
+/// dev entry point to inject a fake user ID without Firebase:
+///
+/// ```dart
+/// ProviderScope(
+///   overrides: [
+///     currentUserIdProvider.overrideWithValue('user_test'),
+///     tripRepositoryProvider.overrideWithValue(MockTripRepository()),
+///   ],
+///   child: MyApp(),
+/// )
+/// ```
+///
+/// TODO(E0-06): replace the default implementation with the real auth provider
+/// once Firebase Auth is wired:
+///   `ref.watch(authStateProvider).value?.uid ?? ''`
+final currentUserIdProvider = Provider<String>((ref) => '');
+
+// ---------------------------------------------------------------------------
+// Notifier
+// ---------------------------------------------------------------------------
+
 /// Streams the current user's trips, sorted for the F1.1 list:
-///   ongoing (🟢) → upcoming (🟡) → finished (⚪) → archived (📦).
+///   ongoing → upcoming → finished → archived.
 ///
 /// Within the same [TripStatus] bucket, trips are additionally sorted by
 /// [startDate] ascending (soonest first for upcoming) — the repository
 /// already returns data ordered by startDate from Firestore, so this
 /// secondary sort is preserved naturally.
-///
-/// Auth: if E0-06 (auth) is not yet wired, this notifier falls back to a
-/// [_mockUserId] constant. Replace with the real auth provider when available.
 class MyTripsNotifier extends AutoDisposeStreamNotifier<List<Trip>> {
   @override
   Stream<List<Trip>> build() {
-    // TODO(F1-01): replace with real auth provider once E0-06 is implemented.
-    // e.g. final userId = ref.watch(authStateProvider).value?.uid ?? '';
-    const userId = _mockUserId;
+    final userId = ref.watch(currentUserIdProvider);
 
     if (userId.isEmpty) {
       // Not authenticated yet (E0-06 pending). Emit an empty list so the
@@ -66,13 +89,3 @@ final myTripsProvider =
     AutoDisposeStreamNotifierProvider<MyTripsNotifier, List<Trip>>(
   MyTripsNotifier.new,
 );
-
-// ---------------------------------------------------------------------------
-// Auth mock — remove when E0-06 lands
-// ---------------------------------------------------------------------------
-
-/// Placeholder user ID used until E0-06 (auth) is implemented.
-///
-/// TODO(F1-01): delete this constant and wire [myTripsProvider] to the real
-/// auth provider (e.g. FirebaseAuth.instance.currentUser?.uid).
-const String _mockUserId = '';
