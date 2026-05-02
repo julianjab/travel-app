@@ -67,21 +67,21 @@ class _Header extends StatelessWidget {
   final TripStatus status;
   final DateTime now;
 
-  Color get _bg =>
-      status == TripStatus.ongoing ? VamosColors.sol500 : VamosColors.bgDark;
+  // All headers share the dark background — the ongoing state is signaled by
+  // the orange overline, not by flooding the entire header with sol500.
+  Color get _bg => VamosColors.bgDark;
 
   Color get _titleColor => switch (status) {
     TripStatus.finished || TripStatus.archived => VamosColors.text3Dark,
     _ => VamosColors.textDark,
   };
 
-  // Muted text on header: warm cream on orange, graphite-muted on dark.
+  // Ongoing overline is sol500 (orange accent); all others are graphite-muted.
   Color get _metaColor =>
-      status == TripStatus.ongoing ? VamosColors.sol100 : VamosColors.text3Dark;
+      status == TripStatus.ongoing ? VamosColors.sol500 : VamosColors.text3Dark;
 
-  // Brand dot is orange on dark headers; dark on orange header to stay readable.
-  Color get _dotColor =>
-      status == TripStatus.ongoing ? VamosColors.bgDark : VamosColors.sol500;
+  // Brand dot always orange on the dark header.
+  Color get _dotColor => VamosColors.sol500;
 
   @override
   Widget build(BuildContext context) {
