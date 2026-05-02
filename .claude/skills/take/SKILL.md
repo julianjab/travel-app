@@ -8,7 +8,7 @@ description: >
   agent that follows.
   Triggers: "/take 14", "/take F1-06", "tomar issue 14", "arrancar la 14",
   "vamos por F1-06". Does NOT merge or open a PR — use /done for that.
-argument-hint: "<issue-number-or-ID> [--base main] [--foreground] [--no-implement]"
+argument-hint: "<issue-number-or-ID> [--base main] [--foreground] [--no-implement] [--skip-plan]"
 disable-model-invocation: false
 ---
 
@@ -69,6 +69,25 @@ Extract:
 - `ID` — first match of `\[([A-Z0-9-]+)\]` in the title
 - `SLUG` — slugify the rest of the title (lowercase, no accents, spaces → `-`, max 40 chars)
 - `BRANCH` = `$ID-$SLUG` (e.g. `F1-06-onboarding-miembro`)
+
+### 2.b. Require a refined plan
+
+Check that the body contains a `## Plan técnico` section:
+
+```bash
+HAS_PLAN=$(jq -r '.body' /tmp/take-issue.json | grep -c '^## Plan técnico' || true)
+```
+
+If `HAS_PLAN == 0` → abort with:
+
+```
+✗ Issue #$ISSUE_NUM has no technical plan.
+  Run `/refine $ISSUE_NUM` first, review the plan in GitHub, then `/take` again.
+```
+
+The plan is non-negotiable: implementers receive subtasks as a checklist they must mark `[x]` as they commit, and the plan is the agreed contract on scope.
+
+Skip this check only when called as `/take $ISSUE_NUM --skip-plan` (use sparingly, only for trivial fixes).
 
 ### 3. Create the worktree
 
@@ -176,7 +195,16 @@ Branch: <BRANCH>
 ALL work happens here. Do not touch the main repo.
 
 ## Your task
-<full body of the issue, copied verbatim>
+<full body of the issue, copied verbatim — this includes the `## Plan técnico` section with the subtask checklist>
+
+## Subtask discipline
+The issue body has a `## Plan técnico` section with subtasks formatted as
+GitHub checkboxes (`- [ ] ...`). For EACH subtask:
+1. Implement it as one focused commit.
+2. After the commit, mark the box as `[x]` by editing the issue body via `gh issue edit`.
+3. Move to the next.
+
+This gives humans real-time visibility into progress without opening Claude.
 
 ## Context
 1. Read <WORKTREE_PATH>/.claude/CONTEXT.md first.

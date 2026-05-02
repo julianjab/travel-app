@@ -135,10 +135,10 @@ The backlog is **GitHub-native**. There is no canonical task list in markdown; `
 
 ### Per-task flow
 
-1. **Pick an issue:** `/take <issue-number-or-ID>` — creates an isolated worktree, branch `<ID>-<slug>`, moves card to "In progress", drops issue body into the worktree as context.
-2. **Work in the worktree.** All file changes happen there, never on `main`.
-3. **Commit** with Conventional Commits + ID in scope: `feat(F1-06): persist member tags on join`.
-4. **Open the PR:** `/done` — runs `/review` (lint + tests), pushes branch, opens PR with `Closes #N` autoinferred from the branch name. Card moves to "In review" if that column exists.
+1. **Refine the issue:** `/refine <issue-number-or-ID>` — validates scope against MVP, decomposes into a subtask checklist, writes it as `## Plan técnico` in the issue body. Run once per issue. NO code at this stage.
+2. **Review the plan in GitHub.** Adjust subtasks if needed. This is the last gate before code.
+3. **Pick up the issue:** `/take <issue-number-or-ID>` — creates an isolated worktree, branch `<ID>-<slug>`, moves card to "In progress", spawns a background subagent that implements the plan. Each subtask becomes one commit; the agent marks `[x]` in the issue body as it goes.
+4. **Open the PR:** `/done` — runs `/review` (lint + tests), pushes branch, opens PR with `Closes #N` autoinferred from the branch name. Card moves to "In review".
 5. **Merge from GitHub UI.** GitHub auto-closes the issue (via `Closes #N`) and the Project workflow moves the card to "Done".
 
 ### Hard rules
@@ -153,7 +153,8 @@ The backlog is **GitHub-native**. There is no canonical task list in markdown; `
 
 Defined under `.claude/skills/`:
 
-- `/take <issue>` — start working an issue (worktree + context + Project status).
+- `/refine <issue>` — technical refinement: scope check + subtask checklist into the issue body. Required before `/take`.
+- `/take <issue>` — start working an issue (worktree + context + background implementer that ticks off subtasks).
 - `/done` — close the loop (review + push + PR with `Closes #N`).
 
 Both depend on `gh` having scope `project`. If commands fail with `missing scope`, run `unset GH_TOKEN GITHUB_TOKEN && gh auth refresh -h github.com -s project,read:project` and retry.
