@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_spacing.dart';
+import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/trips/domain/trip_status.dart';
 import 'package:vamos/features/trips/presentation/widgets/cover_placeholder.dart';
@@ -24,8 +25,6 @@ class TripCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
     final now = DateTime.now();
 
     final status = computeStatus(
@@ -35,46 +34,40 @@ class TripCard extends StatelessWidget {
       now: now,
     );
 
+    // Card shape comes from CardThemeData in vamos_theme.dart — no override here.
     return Card(
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: VamosRadius.brLg),
       child: InkWell(
         onTap: onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Cover image / placeholder
             CoverPlaceholder(
               tripName: trip.name,
               coverPhotoURL: trip.coverPhotoURL,
               height: kTripCoverHeight,
             ),
 
-            // Info section
             Padding(
               padding: const EdgeInsets.all(VamosSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Trip name
                   Text(
                     trip.name,
-                    style: text.titleMedium,
+                    style: VamosTypography.titleMedium,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: VamosSpacing.xs),
 
-                  // Date range + member count
+                  // Dates are data → mono font per design-kit rule.
                   Text(
                     '${_formatDateRange(trip.startDate, trip.endDate)} · $memberCount ${_personLabel(memberCount)}',
-                    style: text.bodySmall?.copyWith(
-                      color: scheme.onSurfaceVariant,
-                    ),
+                    style: VamosTypography.overline,
                   ),
                   const SizedBox(height: VamosSpacing.xs),
 
-                  // Status badge
                   _StatusBadge(status: status, trip: trip, now: now),
                 ],
               ),
@@ -87,7 +80,6 @@ class TripCard extends StatelessWidget {
 
   String _formatDateRange(DateTime start, DateTime end) {
     final startStr = _shortDate(start);
-    // Show end year only when it differs from start year.
     if (start.year != end.year) {
       return '$startStr - ${_shortDate(end, includeYear: true)}';
     }
@@ -123,8 +115,6 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-
     final (label, color) = switch (status) {
       TripStatus.ongoing => (
           'En curso · día ${_dayOfTrip()} de ${_tripDuration()}',
@@ -134,36 +124,29 @@ class _StatusBadge extends StatelessWidget {
           'Por planear · en ${_daysUntil()}',
           VamosColors.warning,
         ),
-      TripStatus.finished => ('Terminado', null),
-      TripStatus.archived => ('Archivado', null),
+      TripStatus.finished => ('Terminado', VamosColors.text3),
+      TripStatus.archived => ('Archivado', VamosColors.textMuted),
     };
 
-    final scheme = Theme.of(context).colorScheme;
-
+    // Status labels are overline: mono, uppercase, letter-spaced — design-kit §typography.
     return Text(
       label,
-      style: text.bodySmall?.copyWith(
-        color: color ?? scheme.onSurfaceVariant,
-        fontWeight: FontWeight.w600,
-      ),
+      style: VamosTypography.overline.copyWith(color: color),
     );
   }
 
-  /// Returns "N" in "día N de M" for ongoing trips.
   String _dayOfTrip() {
     final today = DateTime(now.year, now.month, now.day);
     final start = DateTime(trip.startDate.year, trip.startDate.month, trip.startDate.day);
     return '${today.difference(start).inDays + 1}';
   }
 
-  /// Returns "M" in "día N de M": total duration in days.
   String _tripDuration() {
     final start = DateTime(trip.startDate.year, trip.startDate.month, trip.startDate.day);
     final end = DateTime(trip.endDate.year, trip.endDate.month, trip.endDate.day);
     return '${end.difference(start).inDays + 1}';
   }
 
-  /// Returns a human-friendly "en X días/meses" for upcoming trips.
   String _daysUntil() {
     final today = DateTime(now.year, now.month, now.day);
     final start = DateTime(trip.startDate.year, trip.startDate.month, trip.startDate.day);

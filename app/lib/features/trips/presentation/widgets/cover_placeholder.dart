@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_spacing.dart';
+import 'package:vamos/core/theme/vamos_typography.dart';
 
 /// Renders either the trip's cover photo or a colored placeholder with the
 /// trip name's first letter.
@@ -87,9 +89,7 @@ class _Placeholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final initial =
-        tripName.isNotEmpty ? tripName.trim()[0].toUpperCase() : '?';
+    final initial = tripName.isNotEmpty ? tripName.trim()[0].toUpperCase() : '?';
     final bgColor = _colorFromName(tripName);
 
     return ClipRRect(
@@ -101,9 +101,8 @@ class _Placeholder extends StatelessWidget {
         alignment: Alignment.center,
         child: Text(
           initial,
-          style: text.displaySmall?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
+          style: VamosTypography.displayMedium.copyWith(
+            color: VamosColors.textOnDark,
           ),
         ),
       ),

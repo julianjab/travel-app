@@ -112,7 +112,10 @@ class VamosTheme {
       cardTheme: CardThemeData(
         elevation: 0,
         color: colorScheme.surface,
-        shape: RoundedRectangleBorder(borderRadius: VamosRadius.brLg),
+        shape: RoundedRectangleBorder(
+          borderRadius: VamosRadius.brLg,
+          side: BorderSide(color: colorScheme.outline),
+        ),
         clipBehavior: Clip.antiAlias,
       ),
 

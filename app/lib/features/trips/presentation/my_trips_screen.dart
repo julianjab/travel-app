@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_spacing.dart';
+import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/features/trips/application/my_trips_notifier.dart';
 import 'package:vamos/features/trips/presentation/widgets/trip_card.dart';
 
@@ -36,9 +38,8 @@ class MyTripsScreen extends ConsumerWidget {
   }
 
   AppBar _buildAppBar(BuildContext context) {
-    final text = Theme.of(context).textTheme;
     return AppBar(
-      title: Text('Mis viajes', style: text.titleLarge),
+      title: const Text('Mis viajes'),
       actions: [
         IconButton(
           // TODO(F1-01): navigate to profile screen when F4.x is implemented.
@@ -70,14 +71,12 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(VamosSpacing.xl),
         child: Text(
           'No se pudo cargar tus viajes. Verificá tu conexión.',
-          style: text.bodyMedium?.copyWith(color: scheme.error),
+          style: VamosTypography.bodyMedium.copyWith(color: VamosColors.red),
           textAlign: TextAlign.center,
         ),
       ),
@@ -91,9 +90,6 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(VamosSpacing.xl),
@@ -102,15 +98,13 @@ class _EmptyState extends StatelessWidget {
           children: [
             Text(
               'Acá no hay nada todavía.',
-              style: text.titleMedium,
+              style: VamosTypography.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: VamosSpacing.sm),
             Text(
               'Creá un viaje, o pedile el link a quien ya armó uno.',
-              style: text.bodyMedium?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
+              style: VamosTypography.bodyMedium.copyWith(color: VamosColors.text3),
               textAlign: TextAlign.center,
             ),
           ],
