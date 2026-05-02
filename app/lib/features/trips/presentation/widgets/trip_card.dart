@@ -385,6 +385,10 @@ class _StatusRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = cs.brightness == Brightness.dark;
+    final mutedColor = isDark ? VamosColors.text2Dark : VamosColors.text2;
+
     final (dotColor, boldText, rest) = switch (status) {
       TripStatus.upcoming => (
         VamosColors.warning,
@@ -393,7 +397,7 @@ class _StatusRow extends StatelessWidget {
       ),
       TripStatus.ongoing => (VamosColors.green, 'En curso', ' · viaje activo.'),
       TripStatus.finished => (
-        VamosColors.text3,
+        isDark ? VamosColors.text3Dark : VamosColors.text3,
         'Terminado',
         ' · revisá los saldos.',
       ),
@@ -419,16 +423,14 @@ class _StatusRow extends StatelessWidget {
                 TextSpan(
                   text: boldText,
                   style: VamosTypography.bodyMedium.copyWith(
-                    color: VamosColors.text,
+                    color: cs.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 if (rest.isNotEmpty)
                   TextSpan(
                     text: rest,
-                    style: VamosTypography.bodyMedium.copyWith(
-                      color: VamosColors.text2,
-                    ),
+                    style: VamosTypography.bodyMedium.copyWith(color: mutedColor),
                   ),
               ],
             ),
@@ -466,6 +468,13 @@ class _MemberPills extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = cs.brightness == Brightness.dark;
+    final circleBorder = isDark ? VamosColors.surfaceDark : VamosColors.surface;
+    final chipBg = isDark ? VamosColors.surface2Dark : VamosColors.surface2;
+    final chipBorder = isDark ? VamosColors.borderDark : VamosColors.border;
+    final chipText = isDark ? VamosColors.text2Dark : VamosColors.text2;
+
     final visible = memberIds.take(_maxVisible).toList();
     final extra = memberIds.length - _maxVisible;
 
@@ -490,7 +499,7 @@ class _MemberPills extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: _colorFromId(e.value),
                   shape: BoxShape.circle,
-                  border: Border.all(color: VamosColors.surface, width: 2),
+                  border: Border.all(color: circleBorder, width: 2),
                 ),
               ),
             ),
@@ -504,16 +513,14 @@ class _MemberPills extends StatelessWidget {
                   horizontal: VamosSpacing.xs,
                 ),
                 decoration: BoxDecoration(
-                  color: VamosColors.surface2,
+                  color: chipBg,
                   borderRadius: VamosRadius.brFull,
-                  border: Border.all(color: VamosColors.border),
+                  border: Border.all(color: chipBorder),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   '+$extra',
-                  style: VamosTypography.caption.copyWith(
-                    color: VamosColors.text2,
-                  ),
+                  style: VamosTypography.caption.copyWith(color: chipText),
                 ),
               ),
             ),
