@@ -63,64 +63,68 @@ Each feature may contain:
 
 ## Design system and tokens
 
-The app **does not have a final visual identity** (PRD §8 marks it as pending). Meanwhile, all visual values live centralized in `lib/core/theme/`. When branding arrives, the tokens are modified and the app adapts — **widgets are not touched**.
+The app uses the **Vamos Design Kit** (`vamos-design-kit/`). The Flutter files live in `lib/core/theme/` (copied from `vamos-design-kit/flutter/`). When tokens change, only those files are touched — widgets are never modified directly.
 
 ### Structure
 
 ```
 lib/core/theme/
-├── app_colors.dart       ← seed color + ColorScheme.fromSeed (light/dark) + custom semantic (success, warning)
-├── app_typography.dart   ← TextTheme based on Material 3, system font for now
-├── app_spacing.dart      ← scale 4-8-16-24-32-48 (xs/sm/md/lg/xl/xxl)
-├── app_radii.dart        ← scale 8-12-16-24 + pill (sm/md/lg/xl/pill)
-└── app_theme.dart        ← assembles the final ThemeData (Cards, Buttons, Inputs, Chips, etc.)
+├── vamos_colors.dart      ← full palette + semantic colors (sol, bg, text, border, red, green)
+├── vamos_typography.dart  ← three font families with strict roles (Space Grotesk, Inter, JetBrains Mono)
+├── vamos_spacing.dart     ← spacing scale (xs/sm/md/lg/xl/xxl/xxxl) + VamosRadius + VamosShadow
+├── vamos_theme.dart       ← ThemeData light + dark assembled with the tokens above
+└── vamos_logo.dart        ← VamosLogo and VamosLogoMark widgets
 ```
+
+Font families and their roles (enforced):
+- **Space Grotesk** (`fontDisplay`) → display titles, hero, wordmark only
+- **Inter** (`fontUI`) → all other UI text
+- **JetBrains Mono** (`fontMono`) → numeric data, IDs, timestamps, overlines **only**
 
 ### Hard rules (non-negotiable)
 
-1. **No `Color(0xFF...)` or `Colors.blue` in widgets.** Always `Theme.of(context).colorScheme.<token>` (primary, surface, onSurface, error, etc.) or `AppColors.success` / `AppColors.warning` for the product's custom semantics.
+1. **No `Color(0xFF...)` or `Colors.blue` in widgets.** Always `VamosColors.<token>` (e.g., `VamosColors.sol500`, `VamosColors.bg`, `VamosColors.text`) or `Theme.of(context).colorScheme.<role>` for Material roles.
 
-2. **No `EdgeInsets.all(16)` or `SizedBox(height: 24)` with raw numbers.** Always `AppSpacing.md`, `AppSpacing.lg`, etc.
+2. **No `EdgeInsets.all(16)` or `SizedBox(height: 24)` with raw numbers.** Always `VamosSpacing.md` (16), `VamosSpacing.lg` (24), etc.
 
-3. **No `BorderRadius.circular(8)` with raw numbers.** Always `AppRadii.md`, `AppRadii.lg`, etc.
+3. **No `BorderRadius.circular(8)` with raw numbers.** Always `VamosRadius.brMd`, `VamosRadius.brLg`, etc.
 
-4. **No `TextStyle(fontSize: 16, fontWeight: ...)` instantiated by hand.** Always `Theme.of(context).textTheme.<role>` (bodyLarge, titleMedium, labelLarge, etc.). If you need a different weight or color, use a spot `.copyWith(...)` over the theme style.
+4. **No `TextStyle(fontSize: 16, fontWeight: ...)` instantiated by hand.** Always `VamosTypography.<style>` (e.g., `VamosTypography.bodyMedium`, `VamosTypography.monoLarge`) or `Theme.of(context).textTheme.<role>`. For spot adjustments, use `.copyWith(...)`.
 
-5. **No `ThemeData(...)` or theme overrides outside `app_theme.dart`.** If you want to change the shape of a `Card` or the color of `FilledButton`, do it in `_build` of `AppTheme`. A screen **never** wraps something in `Theme(data: ..., child: ...)`.
+5. **Mono font only for data.** `VamosTypography.monoMedium` / `monoLarge` / `overline` are for amounts, dates, IDs, and overline labels — never for regular UI text.
 
-6. **If you need a value not in the tokens, add it to the token.** Extending the scale (e.g., `AppSpacing.xxxl = 64`) is fine if the case appears more than once. Hardcoding "because it's a one-off case" is debt — in 6 months no one will know why that widget has `padding: EdgeInsets.all(13)`.
+6. **No `ThemeData(...)` or theme overrides outside `vamos_theme.dart`.** A screen **never** wraps a subtree in `Theme(data: ..., child: ...)`.
+
+7. **If you need a value not in the tokens, add it to the token.** Extending the scale (e.g., a new semantic color) is fine if the case appears more than once. Hardcoding "because it's a one-off case" is debt.
 
 ### How to use
 
 ```dart
-import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_radii.dart';
-import '../../core/theme/app_spacing.dart';
+import '../../core/theme/vamos_colors.dart';
+import '../../core/theme/vamos_spacing.dart';
+import '../../core/theme/vamos_typography.dart';
 
 class TripCard extends StatelessWidget {
-  const TripCard({super.key, required this.title});
+  const TripCard({super.key, required this.title, required this.amount});
   final String title;
+  final String amount;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
-
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(VamosSpacing.lg),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(AppRadii.lg),
+        color: VamosColors.surface,
+        borderRadius: VamosRadius.brLg,
+        boxShadow: VamosShadow.sm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: text.titleLarge),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'En curso · día 3 de 10',
-            style: text.bodyMedium?.copyWith(color: AppColors.success),
-          ),
+          Text(title, style: VamosTypography.headlineMedium),
+          const SizedBox(height: VamosSpacing.sm),
+          Text(amount, style: VamosTypography.monoLarge),  // mono solo para datos
+          Text('En curso · día 3 de 10', style: VamosTypography.caption),
         ],
       ),
     );
@@ -130,13 +134,14 @@ class TripCard extends StatelessWidget {
 
 ### When to evolve to components (`shared/widgets/`)
 
-Not anticipatorily. If a visual pattern (e.g., trip card, tag chip, expense row) appears in **2+ screens with the same structure**, then it's extracted to `shared/widgets/<component>.dart`. Not before — citing the project rule: if a pattern appears only once, it stays concrete.
+Not anticipatorily. If a visual pattern (e.g., trip card, tag chip, expense row) appears in **2+ screens with the same structure**, then it's extracted to `shared/widgets/<component>.dart`. Not before.
 
 ### When to change the tokens
 
-- **Final visual identity arrives** → edit `app_colors.dart` (seed + semantics), `app_typography.dart` (fontFamily + asset in pubspec), eventually `app_radii.dart` and `app_spacing.dart` if the system asks.
-- **The designer delivers Figma with named tokens** → map 1:1 to the files in `core/theme/`. If the naming differs, adjust ours to match — don't invent parallels.
-- **A new product semantic color appears** (e.g., "info" for notifications) → add it in `AppColors`, not in the widget that needed it first.
+- **Palette or branding change** → edit `vamos_colors.dart`. The source of truth is `vamos-design-kit/tokens/design_tokens.json`.
+- **New typography role or font weight** → add to `vamos_typography.dart`. Always use one of the three established font families.
+- **New spacing or radius value needed 2+ times** → add to `vamos_spacing.dart`.
+- **A new product semantic color** (e.g., "info" for notifications) → add it in `VamosColors`, not in the widget that needed it first.
 
 ## Naming
 
@@ -258,7 +263,7 @@ await tester.pumpWidget(
 ```
 
 No Firebase needed. No `fake_cloud_firestore` needed for simple tests.
-Mock lives in `test/data/mocks/mock_<plural>_repository.dart`.
+Mock lives in `lib/dev/mocks/mock_<plural>_repository.dart`.
 
 ### How to override in dev mode (main_dev.dart)
 
@@ -277,8 +282,10 @@ runApp(
 );
 ```
 
-Imports the mock from `test/data/mocks/` — that's intentional. The mock is
-test infrastructure shared between unit tests and the dev entry point.
+Imports the mock from `lib/dev/mocks/` — that's intentional. The mock is
+dev/test infrastructure shared between unit tests and the dev entry point.
+Note: `test/` is not part of the Flutter build graph; mocks used in `main_dev.dart`
+must live under `lib/`.
 
 ### Hypothetical backend migration (Supabase, etc.)
 

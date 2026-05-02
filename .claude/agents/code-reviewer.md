@@ -36,12 +36,16 @@ You review code already written in Vamos. Your guiding question is: **"Is this d
 - `family` when depending on a parameter (`tripId`, etc.)? Yes, expected.
 
 ### Design system tokens (hard rule)
-- `Color(0xFF...)` or `Colors.blue` in widget? → **blocking**.
-- `EdgeInsets.all(N)` with raw number? → **blocking**.
-- `BorderRadius.circular(N)` with raw number? → **blocking**.
-- `TextStyle(fontSize: ...)` instantiated by hand? → **blocking** (must come from theme with `.copyWith()`).
-- `ThemeData(...)` or theme override outside `app_theme.dart`? → **blocking**.
-- If a value not in tokens was needed: it should have been added to the token, not hardcoded.
+
+The project uses the **Vamos Design Kit** (`lib/core/theme/vamos_*.dart`). Any raw value bypassing the kit is a blocking issue.
+
+- `Color(0xFF...)` or `Colors.blue` in widget? → **blocking**. Must use `VamosColors.<token>` or `Theme.of(context).colorScheme.<role>`.
+- `EdgeInsets.all(N)` or `SizedBox(height: N)` with raw number? → **blocking**. Must use `VamosSpacing.<step>`.
+- `BorderRadius.circular(N)` with raw number? → **blocking**. Must use `VamosRadius.brSm / brMd / brLg / brXl`.
+- `TextStyle(fontSize: ...)` instantiated by hand? → **blocking**. Must use `VamosTypography.<style>` with `.copyWith()` for spot adjustments.
+- Mono font (`JetBrainsMono`) used for non-data UI text? → **blocking**. Mono is only for amounts, dates, IDs, overlines.
+- `ThemeData(...)` or `Theme(data: ..., child: ...)` outside `vamos_theme.dart`? → **blocking**.
+- Raw number used instead of adding it to the token scale? → **blocking** (add to `VamosSpacing`, `VamosRadius`, or `VamosColors` instead).
 
 ### Money handling (hard rule)
 - Any `double` in code touching money? → **blocking**. Must be `Decimal`.

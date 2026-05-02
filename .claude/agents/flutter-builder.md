@@ -32,11 +32,15 @@ If anything in the instruction contradicts any of those files, stop and flag it 
 - `family` when the provider depends on a parameter (e.g., `tripId`).
 
 ### Design system tokens (non-negotiable)
-- **No `Color(0xFF...)` or `Colors.blue`.** Always `Theme.of(context).colorScheme.<token>` or `AppColors.<semantic>`.
-- **No `EdgeInsets.all(16)` with raw numbers.** Always `AppSpacing.md`, etc.
-- **No `BorderRadius.circular(8)` with raw numbers.** Always `AppRadii.md`, etc.
-- **No `TextStyle(fontSize: ...)` instantiated by hand.** Always `Theme.of(context).textTheme.<role>` with `.copyWith(...)` for spot adjustments.
-- **No `ThemeData(...)` or theme overrides outside `app_theme.dart`.**
+
+The project uses the **Vamos Design Kit**. Token files live in `lib/core/theme/`.
+
+- **No `Color(0xFF...)` or `Colors.blue`.** Always `VamosColors.<token>` (e.g., `VamosColors.sol500`, `VamosColors.bg`) or `Theme.of(context).colorScheme.<role>` for Material roles.
+- **No `EdgeInsets.all(16)` with raw numbers.** Always `VamosSpacing.md` (=16), `VamosSpacing.lg` (=24), etc.
+- **No `BorderRadius.circular(N)` with raw numbers.** Always `VamosRadius.brMd`, `VamosRadius.brLg`, etc.
+- **No `TextStyle(fontSize: ...)` instantiated by hand.** Always `VamosTypography.<style>` (e.g., `VamosTypography.bodyMedium`, `VamosTypography.titleMedium`) with `.copyWith(...)` for spot adjustments.
+- **Mono font only for data.** `VamosTypography.monoMedium / monoLarge / overline` are for amounts, dates, and IDs — never for regular UI text.
+- **No `ThemeData(...)` or theme overrides outside `vamos_theme.dart`.** Screens never wrap subtrees in `Theme(data: ..., child: ...)`.
 - If you need a value not in the tokens, add it to the token. Hardcoding "because it's a one-off" is debt.
 
 ### Per-feature structure
