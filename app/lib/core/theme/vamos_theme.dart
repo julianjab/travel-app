@@ -106,7 +106,10 @@ class VamosTheme {
         elevation: 0,
         scrolledUnderElevation: 1,
         centerTitle: false,
-        titleTextStyle: textTheme.titleLarge,
+        // Space Grotesk 22px per kit spec — differentiates from Inter body text.
+        titleTextStyle: textDark
+            ? VamosTypography.headlineMedium.copyWith(color: VamosColors.textDark)
+            : VamosTypography.headlineMedium,
       ),
 
       cardTheme: CardThemeData(
