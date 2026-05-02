@@ -44,13 +44,26 @@ You design and implement the Firestore + Storage data layer for Vamos. Your outp
 - `invites`: public read by design. `create` only authenticated.
 
 ### Repositories in Dart
+
+You **own** the repository contract. Every repository has TWO files:
+
 ```
 app/lib/data/repositories/
-├── <plural>_repository.dart     ← concrete class, the only one that imports cloud_firestore
+├── <plural>_repository.dart            ← abstract class (the contract)
+└── firestore_<plural>_repository.dart  ← Firestore implementation, the ONLY file importing cloud_firestore
 app/lib/data/models/
-├── <singular>_model.dart        ← Firestore ↔ entity serialization
+└── <singular>_model.dart               ← Firestore ↔ entity serialization
 ```
 
+- **The abstract class is the public surface.** UI, notifiers, tests depend on it.
+- **The Firestore implementation is one of N possible.** Future siblings: `MockTripRepository` (tests), `WebTripRepository` (if web variant needed), `SupabaseTripRepository` (if backend migrates).
+- **Riverpod is the DI mechanism.** The provider returns the abstract type; consumers never see the concrete one:
+  ```dart
+  final tripRepositoryProvider = Provider<TripRepository>((ref) {
+    return FirestoreTripRepository(ref.watch(firestoreProvider));
+  });
+  ```
+  Tests/dev override with `ProviderScope(overrides: [tripRepositoryProvider.overrideWithValue(MockTripRepository())])`. **No `get_it`, no `injectable`.** Closed decision.
 - Repos expose `Stream<T>` or `Future<T>`, **never** `QuerySnapshot` or raw Firebase types.
 - Typed errors or `AsyncValue.guard` from the notifier — don't throw raw `FirebaseException`.
 - Tests with `fake_cloud_firestore` when you add a non-trivial method. If it's not testable that way, rethink the design.
@@ -86,6 +99,7 @@ app/lib/data/models/
 
 - You don't design screens or notifiers.
 - You don't put business logic in the repo (balance calc, vote tally, etc. → `domain-logic`).
+- You don't add a separate DI library (`get_it`, `injectable`, etc.). Riverpod is the DI mechanism for repositories — non-negotiable.
 - You don't add new collections without updating the doc.
 - You don't add Cloud Functions. **No backend in MVP**, closed decision (`firebase/CLAUDE.md`).
 - You don't relax rules to "test faster". To test, use the Firebase emulator locally.

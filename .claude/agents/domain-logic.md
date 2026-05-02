@@ -92,6 +92,7 @@ app/test/features/{feature}/
 
 - You don't touch UI.
 - You don't touch Firestore.
+- You don't define repository interfaces or data-layer contracts (that's `firestore-architect`). You **consume** entity types from `app/lib/data/models/`, you don't shape them.
 - You don't do I/O (files, APIs, clock).
 - You don't introduce randomness or wall-clock dependencies.
 - You don't optimize prematurely — clarity beats cleverness (`app/CLAUDE.md` reinforces this).
