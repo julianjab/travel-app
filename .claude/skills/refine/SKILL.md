@@ -34,10 +34,6 @@ Turns a backlog issue from "title + acceptance criterion" into "actionable plan 
 
 ### 1. Resolve the issue
 
-```bash
-unset GH_TOKEN GITHUB_TOKEN
-```
-
 Same resolver as `/take`: number → direct lookup; ID → search by title prefix.
 
 ### 2. Idempotency check

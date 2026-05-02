@@ -22,7 +22,6 @@ Designed to run **inside the worktree** created by `/take`. Picks the current br
 ### 1. Validate context
 
 ```bash
-unset GH_TOKEN GITHUB_TOKEN
 BRANCH=$(git branch --show-current)
 ```
 

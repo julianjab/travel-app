@@ -42,10 +42,6 @@ Run in order. Abort if any step fails.
 
 ### 1. Resolve the issue
 
-```bash
-unset GH_TOKEN GITHUB_TOKEN
-```
-
 - If `$ARGUMENTS` is a number → `ISSUE_NUM=$ARGUMENTS`.
 - If it matches `^[A-Z]+[0-9]*-[0-9]+$` (e.g. `F1-06`):
   ```bash
@@ -262,7 +258,7 @@ Stop after step 7 with: "Setup done. Run `/take <id>` (default) to spawn a backg
 - **Do not touch the main repo.** All work for the issue lives in the worktree.
 - **Do not merge from here.** This skill only opens the flow; closing is `/done`'s job + manual merge in GitHub.
 - **No branches without an ID.** If the issue has no `[ID]` in its title → abort and ask the user to fix the title first.
-- **Do not skip `unset GH_TOKEN GITHUB_TOKEN`** at the start: the env token does not have `project` scope and step 5 will fail.
+- **`gh` must have `project` scope** (fine-grained: Account → Projects R+W; classic: `repo` + `project`). Without it, step 5 fails. Refresh the token in `~/.profile` if needed.
 
 ## When NOT to use /take
 
