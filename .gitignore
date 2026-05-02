@@ -52,3 +52,6 @@ Thumbs.db
 
 # Git worktrees (created by /take, /worktree)
 .worktrees/
+
+# Per-worktree context injected by /take (issue body, not code)
+.claude/CONTEXT.md
