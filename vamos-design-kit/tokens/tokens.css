@@ -1,0 +1,75 @@
+/* Vamos · Design Tokens · CSS Custom Properties
+   Espejo de design_tokens.json — usar en web/landing
+   ============================================= */
+
+:root {
+  /* === Color · Sol (marca) === */
+  --vm-sol-50:  #fff5ed;
+  --vm-sol-100: #ffe9dc;
+  --vm-sol-200: #ffd2b8;
+  --vm-sol-300: #ffab80;
+  --vm-sol-400: #ff8550;
+  --vm-sol-500: #ff5a1f;  /* Color de marca · light mode */
+  --vm-sol-600: #e84812;
+  --vm-sol-700: #b8370d;
+
+  /* === Color · Backgrounds === */
+  --vm-bg:        #f8f4ea;
+  --vm-surface:   #fffdf7;
+  --vm-surface-2: #f0eadd;
+
+  /* === Color · Text === */
+  --vm-text:        #1a1612;
+  --vm-text-2:      #3d352c;
+  --vm-text-3:      #6e6356;
+  --vm-text-muted:  #b5ab9b;
+  --vm-text-on-dark:#fffdf7;
+
+  /* === Color · Border === */
+  --vm-border: #e6dfd2;
+
+  /* === Color · Semantic === */
+  --vm-red:   #c43d2a;
+  --vm-green: #2f7d4f;
+
+  /* === Typography · Families === */
+  --vm-font-display: 'Space Grotesk', sans-serif;
+  --vm-font-ui:      'Inter', sans-serif;
+  --vm-font-mono:    'JetBrains Mono', monospace;
+
+  /* === Spacing === */
+  --vm-space-xs:  4px;
+  --vm-space-sm:  8px;
+  --vm-space-md:  16px;
+  --vm-space-lg:  24px;
+  --vm-space-xl:  32px;
+  --vm-space-2xl: 48px;
+  --vm-space-3xl: 64px;
+
+  /* === Radius === */
+  --vm-radius-sm:   6px;
+  --vm-radius-md:   10px;
+  --vm-radius-lg:   14px;
+  --vm-radius-xl:   20px;
+  --vm-radius-full: 9999px;
+
+  /* === Shadow === */
+  --vm-shadow-sm: 0 1px 3px rgba(26,22,18,0.06);
+  --vm-shadow-md: 0 4px 12px rgba(26,22,18,0.10);
+  --vm-shadow-lg: 0 8px 24px rgba(26,22,18,0.14);
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --vm-sol-500:    #ff7a45;
+    --vm-bg:         #1a1612;
+    --vm-surface:    #26201a;
+    --vm-surface-2:  #332b23;
+    --vm-text:       #fffdf7;
+    --vm-text-2:     #d4ccc0;
+    --vm-text-3:     #9b9285;
+    --vm-text-muted: #6e6356;
+    --vm-border:     #3d352c;
+  }
+}

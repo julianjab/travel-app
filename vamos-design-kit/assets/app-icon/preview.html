@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Vamos · App icons preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #f8f4ea; color: #1a1612;
+    font-family: 'Inter', sans-serif;
+    padding: 48px;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700; font-size: 36px;
+    letter-spacing: -0.03em; margin-bottom: 8px;
+  }
+  .lead { color: #6e6356; margin-bottom: 36px; max-width: 640px; }
+  .group {
+    background: #fffdf7; border: 1px solid #e6dfd2;
+    border-radius: 14px; padding: 28px 32px; margin-bottom: 20px;
+  }
+  .group h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600; font-size: 20px; margin-bottom: 4px;
+  }
+  .group .desc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #6e6356; margin-bottom: 24px;
+  }
+  .grid {
+    display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end;
+  }
+  .item {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .item img { display: block; image-rendering: -webkit-optimize-contrast; }
+  .item span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: #6e6356;
+  }
+  .real {
+    background: linear-gradient(160deg, #4a3826, #1a1612);
+    padding: 32px;
+    border-radius: 14px;
+    margin-top: 12px;
+    display: flex; gap: 16px; align-items: center;
+  }
+  .real .label {
+    color: rgba(255,253,247,0.6);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    margin-left: 12px;
+  }
+</style>
+</head>
+<body>
+  <h1>Vamos · App icons</h1>
+  <p class="lead">Todos los íconos sobre fondo grafito <code style="background:#1a1612;color:#fffdf7;padding:1px 6px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:12px">#1A1612</code> con el punto naranja centrado. 22 archivos generados.</p>
+
+  <div class="group">
+    <h2>iOS · Squircle</h2>
+    <div class="desc">11 tamaños · de 1024 a 29 px</div>
+    <div class="grid">
+      <div class="item"><img src="ios-1024.png" width="160"><span>1024 · App Store</span></div>
+      <div class="item"><img src="ios-180.png" width="120"><span>180 · @3x</span></div>
+      <div class="item"><img src="ios-167.png" width="100"><span>167 · iPad Pro</span></div>
+      <div class="item"><img src="ios-152.png" width="92"><span>152 · iPad</span></div>
+      <div class="item"><img src="ios-120.png" width="80"><span>120 · @2x</span></div>
+      <div class="item"><img src="ios-87.png" width="64"><span>87</span></div>
+      <div class="item"><img src="ios-80.png" width="58"><span>80</span></div>
+      <div class="item"><img src="ios-60.png" width="48"><span>60</span></div>
+      <div class="item"><img src="ios-58.png" width="46"><span>58</span></div>
+      <div class="item"><img src="ios-40.png" width="36"><span>40</span></div>
+      <div class="item"><img src="ios-29.png" width="29"><span>29</span></div>
+    </div>
+    <div class="real">
+      <img src="ios-180.png" width="60" style="border-radius:14px">
+      <img src="ios-180.png" width="60" style="border-radius:14px">
+      <img src="ios-180.png" width="60" style="border-radius:14px">
+      <span class="label">en homescreen iOS</span>
+    </div>
+  </div>
+
+  <div class="group">
+    <h2>Android · Legacy</h2>
+    <div class="desc">5 densidades · mipmap-mdpi a xxxhdpi</div>
+    <div class="grid">
+      <div class="item"><img src="android-mdpi-48.png" width="48"><span>mdpi · 48</span></div>
+      <div class="item"><img src="android-hdpi-72.png" width="72"><span>hdpi · 72</span></div>
+      <div class="item"><img src="android-xhdpi-96.png" width="96"><span>xhdpi · 96</span></div>
+      <div class="item"><img src="android-xxhdpi-144.png" width="120"><span>xxhdpi · 144</span></div>
+      <div class="item"><img src="android-xxxhdpi-192.png" width="140"><span>xxxhdpi · 192</span></div>
+    </div>
+  </div>
+
+  <div class="group">
+    <h2>Android · Adaptive (Android 8+)</h2>
+    <div class="desc">2 layers · foreground + background</div>
+    <div class="grid">
+      <div class="item"><img src="android-adaptive-fg-432.png" width="160"><span>foreground (safe zone 66%)</span></div>
+      <div class="item"><img src="android-adaptive-bg-432.png" width="160"><span>background (grafito sólido)</span></div>
+    </div>
+  </div>
+
+  <div class="group">
+    <h2>Web · Favicon + PWA</h2>
+    <div class="desc">4 tamaños · 16 a 512</div>
+    <div class="grid">
+      <div class="item"><img src="favicon-16.png" width="16"><span>16 · tab</span></div>
+      <div class="item"><img src="favicon-32.png" width="32"><span>32 · retina</span></div>
+      <div class="item"><img src="favicon-192.png" width="120"><span>192 · PWA</span></div>
+      <div class="item"><img src="favicon-512.png" width="160"><span>512 · splash</span></div>
+    </div>
+  </div>
+
+</body>
+</html>

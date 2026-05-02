@@ -1,0 +1,89 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "color": {
+    "sol": {
+      "50":  { "$value": "#FFF5ED", "$type": "color" },
+      "100": { "$value": "#FFE9DC", "$type": "color" },
+      "200": { "$value": "#FFD2B8", "$type": "color" },
+      "300": { "$value": "#FFAB80", "$type": "color" },
+      "400": { "$value": "#FF8550", "$type": "color" },
+      "500": { "$value": "#FF5A1F", "$type": "color", "$description": "Naranja sol · color de marca · light mode" },
+      "600": { "$value": "#E84812", "$type": "color" },
+      "700": { "$value": "#B8370D", "$type": "color" }
+    },
+    "sol-dark": {
+      "500": { "$value": "#FF7A45", "$type": "color", "$description": "Naranja en dark mode (calentado para no vibrar)" }
+    },
+    "bg": {
+      "light": { "$value": "#F8F4EA", "$type": "color", "$description": "Fondo principal light mode" },
+      "dark":  { "$value": "#1A1612", "$type": "color", "$description": "Fondo principal dark mode · grafito de marca" }
+    },
+    "surface": {
+      "light":   { "$value": "#FFFDF7", "$type": "color" },
+      "light-2": { "$value": "#F0EADD", "$type": "color" },
+      "dark":    { "$value": "#26201A", "$type": "color" },
+      "dark-2":  { "$value": "#332B23", "$type": "color" }
+    },
+    "text": {
+      "primary":   { "$value": "#1A1612", "$type": "color" },
+      "secondary": { "$value": "#3D352C", "$type": "color" },
+      "tertiary":  { "$value": "#6E6356", "$type": "color" },
+      "muted":     { "$value": "#B5AB9B", "$type": "color" },
+      "on-dark":   { "$value": "#FFFDF7", "$type": "color" }
+    },
+    "border": {
+      "light": { "$value": "#E6DFD2", "$type": "color" },
+      "dark":  { "$value": "#3D352C", "$type": "color" }
+    },
+    "semantic": {
+      "red":   { "$value": "#C43D2A", "$type": "color" },
+      "green": { "$value": "#2F7D4F", "$type": "color" }
+    }
+  },
+  "typography": {
+    "family": {
+      "display": { "$value": "Space Grotesk", "$type": "fontFamily" },
+      "ui":      { "$value": "Inter", "$type": "fontFamily" },
+      "mono":    { "$value": "JetBrains Mono", "$type": "fontFamily" }
+    },
+    "weight": {
+      "regular":  { "$value": 400, "$type": "fontWeight" },
+      "medium":   { "$value": 500, "$type": "fontWeight" },
+      "semibold": { "$value": 600, "$type": "fontWeight" },
+      "bold":     { "$value": 700, "$type": "fontWeight" }
+    },
+    "scale": {
+      "display-xl": { "$value": { "fontFamily": "Space Grotesk", "fontWeight": 700, "fontSize": "64px", "lineHeight": 1.0,  "letterSpacing": "-0.04em" }, "$type": "typography" },
+      "display-lg": { "$value": { "fontFamily": "Space Grotesk", "fontWeight": 700, "fontSize": "48px", "lineHeight": 1.05, "letterSpacing": "-0.035em" }, "$type": "typography" },
+      "display-md": { "$value": { "fontFamily": "Space Grotesk", "fontWeight": 700, "fontSize": "32px", "lineHeight": 1.1,  "letterSpacing": "-0.025em" }, "$type": "typography" },
+      "headline":   { "$value": { "fontFamily": "Space Grotesk", "fontWeight": 600, "fontSize": "22px", "lineHeight": 1.2,  "letterSpacing": "-0.015em" }, "$type": "typography" },
+      "title":      { "$value": { "fontFamily": "Inter",         "fontWeight": 600, "fontSize": "17px", "lineHeight": 1.3,  "letterSpacing": "-0.005em" }, "$type": "typography" },
+      "body-lg":    { "$value": { "fontFamily": "Inter",         "fontWeight": 400, "fontSize": "16px", "lineHeight": 1.5,  "letterSpacing": "0" }, "$type": "typography" },
+      "body":       { "$value": { "fontFamily": "Inter",         "fontWeight": 400, "fontSize": "14px", "lineHeight": 1.5,  "letterSpacing": "0" }, "$type": "typography" },
+      "caption":    { "$value": { "fontFamily": "Inter",         "fontWeight": 500, "fontSize": "12px", "lineHeight": 1.4,  "letterSpacing": "0.01em" }, "$type": "typography" },
+      "mono-md":    { "$value": { "fontFamily": "JetBrains Mono","fontWeight": 500, "fontSize": "14px", "lineHeight": 1.4,  "letterSpacing": "0", "fontFeatureSettings": "'tnum'" }, "$type": "typography" },
+      "mono-sm":    { "$value": { "fontFamily": "JetBrains Mono","fontWeight": 400, "fontSize": "11px", "lineHeight": 1.4,  "letterSpacing": "0.08em", "textTransform": "uppercase" }, "$type": "typography" }
+    }
+  },
+  "spacing": {
+    "xs":  { "$value": "4px",  "$type": "dimension" },
+    "sm":  { "$value": "8px",  "$type": "dimension" },
+    "md":  { "$value": "16px", "$type": "dimension" },
+    "lg":  { "$value": "24px", "$type": "dimension" },
+    "xl":  { "$value": "32px", "$type": "dimension" },
+    "2xl": { "$value": "48px", "$type": "dimension" },
+    "3xl": { "$value": "64px", "$type": "dimension" }
+  },
+  "radius": {
+    "sm":   { "$value": "6px",  "$type": "dimension" },
+    "md":   { "$value": "10px", "$type": "dimension" },
+    "lg":   { "$value": "14px", "$type": "dimension" },
+    "xl":   { "$value": "20px", "$type": "dimension" },
+    "full": { "$value": "9999px", "$type": "dimension" }
+  },
+  "shadow": {
+    "sm": { "$value": { "color": "rgba(26,22,18,0.06)", "offsetX": "0", "offsetY": "1px", "blur": "3px",  "spread": "0" }, "$type": "shadow" },
+    "md": { "$value": { "color": "rgba(26,22,18,0.10)", "offsetX": "0", "offsetY": "4px", "blur": "12px", "spread": "0" }, "$type": "shadow" },
+    "lg": { "$value": { "color": "rgba(26,22,18,0.14)", "offsetX": "0", "offsetY": "8px", "blur": "24px", "spread": "0" }, "$type": "shadow" }
+  }
+}

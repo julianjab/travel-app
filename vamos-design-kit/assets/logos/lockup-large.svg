@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 130" width="360" height="130">
+  
+  <text x="0" y="100" class="word" fill="#1A1612">vam</text>
+  <circle cx="200" cy="68" r="32" fill="#FF5A1F"></circle>
+  <ellipse cx="200" cy="115" rx="25" ry="3.5" fill="#FF5A1F" opacity="0.28"></ellipse>
+  <text x="232" y="100" class="word" fill="#1A1612">s</text>
+</svg>

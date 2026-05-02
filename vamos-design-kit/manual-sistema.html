@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vamos · Manual del sistema de identidad</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sol-500: #ff5a1f;
+    --sol-100: #ffe9dc;
+    --sol-50:  #fff5ed;
+    --bg:      #f8f4ea;
+    --surface: #fffdf7;
+    --surface-2: #f0eadd;
+    --surface-inv: #1a1612;
+    --text:    #1a1612;
+    --text-2:  #3d352c;
+    --text-3:  #6e6356;
+    --text-4:  #b5ab9b;
+    --border:  #e6dfd2;
+    --green: #2f7d4f;
+    --red: #c43d2a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+  }
+  .page { max-width: 1080px; margin: 0 auto; padding: 56px 56px 120px; }
+
+  /* === COVER === */
+  .cover {
+    background: var(--surface-inv);
+    color: var(--surface);
+    border-radius: 20px;
+    padding: 80px 60px 70px;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 30%, rgba(255,90,31,0.18), transparent 55%);
+  }
+  .cover-inner { position: relative; }
+  .cover .doc-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(255,253,247,0.5); margin-bottom: 36px;
+    display: flex; gap: 14px; align-items: center;
+  }
+  .cover .doc-id::before { content: ''; width: 8px; height: 8px; background: var(--sol-500); border-radius: 50%; }
+  .cover h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 76px;
+    letter-spacing: -0.04em; line-height: 1;
+    margin-bottom: 28px;
+  }
+  .cover .lockup-hero {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 96px;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    display: block;
+    margin-bottom: 36px;
+    white-space: nowrap;
+  }
+  .cover p {
+    font-size: 17px; max-width: 600px;
+    color: rgba(255,253,247,0.72);
+  }
+
+  /* === SECTION === */
+  .section { margin-bottom: 64px; }
+  .section-head {
+    display: flex; align-items: baseline; gap: 18px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--sol-500); font-weight: 600;
+    width: 50px;
+  }
+  .section-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    letter-spacing: -0.025em;
+  }
+  .section-lead {
+    font-size: 16px; color: var(--text-2);
+    max-width: 720px; margin-bottom: 28px;
+  }
+
+  /* === BLOCKS === */
+  .block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+  }
+  .block h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: -0.015em;
+    margin-bottom: 14px;
+  }
+  .block p { font-size: 14px; color: var(--text-2); margin-bottom: 8px; }
+
+  .kv {
+    display: grid; grid-template-columns: 200px 1fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .kv:last-child { border-bottom: none; }
+  .kv .k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-3); padding-top: 2px;
+  }
+  .kv .v { color: var(--text); }
+  .kv .v code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* === SIZE TABLE === */
+  .size-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .size-table .row {
+    display: grid;
+    grid-template-columns: 180px 140px 1fr 220px;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding: 0;
+  }
+  .size-table .row:last-child { border-bottom: none; }
+  .size-table .row.head {
+    background: var(--surface-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-3);
+    font-weight: 600;
+  }
+  .size-table .cell { padding: 18px 20px; font-size: 13px; line-height: 1.5; }
+  .size-table .row .cell.preview {
+    background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 90px;
+    border-left: 1px solid var(--border);
+  }
+  .size-table .row.head .cell.preview { background: var(--surface-2); border-left: none; }
+  .size-table .label-cell { font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+  .size-table .size-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-2);
+  }
+
+  /* lockup helpers — el SVG se inserta como si fuera la 'o' minúscula
+     Space Grotesk Bold: x-height ≈ 0.54em; circle ocupa el alto de altura-x.
+     - Sin sombra: SVG de altura 0.54em, viewBox 100x100, vertical-align baseline
+     - Con sombra: SVG de altura 0.78em (incluye el descender + sombra),
+       viewBox 100x144, círculo en y=0..100, sombra en y=130 */
+  .lck {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .lck-dark { color: var(--surface); }
+  .lck svg.dot {
+    display: inline-block;
+    vertical-align: baseline;
+    margin: 0 0.02em;
+    overflow: visible;
+  }
+  /* Sombra centrada bajo el punto: usa filter para evitar que el SVG
+     se ensanche y desplace la sombra por el letter-spacing negativo. */
+
+  /* === RULES === */
+  .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .rules-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 28px;
+  }
+  .rules-card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .rules-card.ok h3 { color: var(--green); }
+  .rules-card.no h3 { color: var(--red); }
+  .rules-card .badge-icon {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 700;
+    color: white;
+  }
+  .rules-card.ok .badge-icon { background: var(--green); }
+  .rules-card.no .badge-icon { background: var(--red); }
+  .rules-card li {
+    list-style: none;
+    font-size: 13px; color: var(--text-2);
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.5;
+  }
+  .rules-card li:last-child { border-bottom: none; }
+  .rules-card li code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--bg);
+    padding: 1px 5px; border-radius: 3px;
+    color: var(--text);
+  }
+
+  /* === APPLICATIONS === */
+  .apps { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .app {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .app-lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .app-content {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--text);
+    word-break: break-word;
+  }
+  .app-content code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .app-content.mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+
+  /* === VOICE === */
+  .voice-row {
+    display: grid; grid-template-columns: 100px 1fr;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+  .voice-row:last-child { border-bottom: none; }
+  .voice-row .ctx {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .voice-row .ex { font-size: 14px; color: var(--text); }
+  .voice-row .ex em { font-style: normal; background: var(--sol-50); padding: 1px 6px; border-radius: 3px; }
+
+  /* === PUSH === */
+  .push-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .push-platform {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+  }
+  .plat-lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .plat-lbl::before { content: ''; width: 6px; height: 6px; background: var(--sol-500); border-radius: 50%; }
+  .push-stage {
+    background: linear-gradient(165deg, #4a3826, #1a1612);
+    border-radius: 18px;
+    padding: 28px 12px 14px;
+    aspect-ratio: 9/15;
+    display: flex; flex-direction: column;
+  }
+  .push-stage.android { background: linear-gradient(165deg, #283142, #0f1318); }
+  .lock-time {
+    text-align: center; color: white;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+    font-size: 52px; letter-spacing: -0.03em; line-height: 1;
+  }
+  .lock-date {
+    text-align: center; color: rgba(255,255,255,0.7);
+    font-size: 11px; margin-top: 4px; margin-bottom: 24px;
+  }
+  .stack { display: flex; flex-direction: column; gap: 6px; }
+  .push-card {
+    background: rgba(255,255,255,0.16);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 14px;
+    padding: 9px 11px;
+    color: white;
+    display: grid;
+    grid-template-columns: 26px 1fr auto;
+    gap: 9px;
+    align-items: start;
+  }
+  .push-card .ico {
+    width: 26px; height: 26px;
+    background: #1a1612; border-radius: 6px;
+    display: grid; place-items: center;
+  }
+  .push-card .body { min-width: 0; }
+  .push-card .app-name {
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: rgba(255,255,255,0.7); margin-bottom: 1px;
+  }
+  .push-card .title {
+    font-size: 11px; font-weight: 600; line-height: 1.3;
+  }
+  .push-card .msg {
+    font-size: 10px; color: rgba(255,255,255,0.85); line-height: 1.35; margin-top: 1px;
+  }
+  .push-card .time {
+    font-size: 9px; color: rgba(255,255,255,0.6);
+  }
+  /* Android variant */
+  .push-card.android-card {
+    background: rgba(245,243,238,0.96);
+    color: #1a1612;
+    grid-template-columns: 18px 1fr auto;
+    gap: 8px;
+  }
+  .push-card.android-card .ico { width: 18px; height: 18px; border-radius: 4px; }
+  .push-card.android-card .ico svg circle { transform-origin: center; }
+  .push-card.android-card .meta-line { font-size: 9px; color: rgba(26,22,18,0.6); }
+  .push-card.android-card .meta-line strong { color: #1a1612; font-weight: 600; }
+  .push-card.android-card .title { color: #1a1612; }
+  .push-card.android-card .msg { color: rgba(26,22,18,0.78); }
+  .push-card.android-card .time { color: rgba(26,22,18,0.5); }
+
+  .push-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .push-table .row {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .push-table .row:last-child { border-bottom: none; }
+  .push-table .row.head {
+    background: var(--surface-2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-3); font-weight: 600;
+  }
+  .push-table .cell { padding: 14px 18px; font-size: 13px; line-height: 1.45; }
+  .push-table .cell.evt {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 600;
+    font-size: 14px; letter-spacing: -0.01em;
+  }
+  .push-table .cell.evt span {
+    display: block; font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; font-weight: 400; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px;
+  }
+  .push-table .cell .t { font-weight: 600; margin-bottom: 2px; color: var(--text); }
+  .push-table .cell .b { font-size: 12px; color: var(--text-2); }
+
+  /* === CLOSE === */
+  .close {
+    margin-top: 32px;
+    background: var(--sol-50);
+    border: 1px dashed var(--sol-500);
+    border-radius: 14px;
+    padding: 24px 28px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .close .icon-confirm {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--sol-500); color: white;
+    display: grid; place-items: center; flex-shrink: 0;
+    font-size: 20px;
+  }
+  .close p { font-size: 14px; color: var(--text); line-height: 1.55; }
+  .close strong { font-weight: 600; }
+
+  /* === MOBILE === */
+  @media (max-width: 720px) {
+    .page { padding: 24px 16px 80px; }
+    .cover { padding: 40px 24px 36px; border-radius: 14px; margin-bottom: 32px; }
+    .cover .doc-id { font-size: 9px; margin-bottom: 24px; }
+    .cover .lockup-hero { font-size: 56px; margin-bottom: 24px; }
+    .cover h1 { font-size: 36px; margin-bottom: 18px; }
+    .cover p { font-size: 14px; }
+
+    .section { margin-bottom: 40px; }
+    .section-head { gap: 10px; margin-bottom: 18px; padding-bottom: 12px; }
+    .section-num { width: auto; font-size: 10px; }
+    .section-title { font-size: 22px; }
+    .section-lead { font-size: 14px; margin-bottom: 18px; }
+
+    .block { padding: 20px 18px; }
+    .block h3 { font-size: 17px; }
+    .block > div[style*="font-size:96px"] > div { font-size: 56px !important; }
+    .block > div[style*="padding:32px"] { padding: 24px 12px !important; }
+
+    .kv { grid-template-columns: 1fr; gap: 4px; padding: 10px 0; }
+    .kv .k { padding-top: 0; }
+
+    .size-table .row { grid-template-columns: 1fr; }
+    .size-table .cell { padding: 12px 16px; }
+    .size-table .row.head { display: none; }
+    .size-table .row .cell.preview { border-left: none; border-top: 1px solid var(--border); min-height: 70px; }
+    .size-table .label-cell { font-size: 14px; padding-bottom: 4px; }
+    .size-table .size-cell { padding-top: 0; padding-bottom: 4px; font-size: 11px; }
+
+    .rules { grid-template-columns: 1fr; }
+    .rules-card { padding: 18px 20px; }
+
+    .apps { grid-template-columns: 1fr; }
+    .app { padding: 16px 18px; }
+
+    .voice-row { grid-template-columns: 1fr; gap: 6px; padding: 12px 0; }
+    .voice-row .ex { font-size: 13px; }
+
+    .close { padding: 18px 20px; gap: 14px; }
+    .close p { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="cover-inner">
+      <div class="doc-id">Vamos · Manual de identidad · v1.0</div>
+      <div class="lockup-hero lck-dark">vam<svg class="dot" width="0.54em" height="0.54em" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ff5a1f"/><ellipse cx="50" cy="130" rx="40" ry="4" fill="#ff5a1f" opacity="0.3"/></svg>s</div>
+      <h1>El sistema en una página.</h1>
+      <p>Manual operativo para usar la marca de Vamos sin ambigüedades. Wordmark, tipografía, escalas, reglas de uso y aplicaciones específicas. Antes de avanzar al Paso 5 — confirmá que cierra.</p>
+    </div>
+  </div>
+
+  <!-- 01 WORDMARK -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-num">01</div>
+      <div class="section-title">Wordmark</div>
+    </div>
+    <p class="section-lead">El logo es el wordmark con el pin reemplazando la "o". El símbolo y el nombre son la misma cosa.</p>
+
+    <div class="block">
+      <h3>Forma canónica</h3>
+      <div style="display:flex;align-items:center;justify-content:center;padding:32px 0 24px;background:var(--surface-inv);border-radius:10px;margin-bottom:20px">
+        <div class="lck lck-dark" style="font-size:96px">vam<svg class="dot" width="0.54em" height="0.54em" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ff5a1f"/><ellipse cx="50" cy="130" rx="40" ry="4" fill="#ff5a1f" opacity="0.3"/></svg>s</div>
+      </div>
+      <div class="kv"><div class="k">Lectura</div><div class="v">vam<strong>◯</strong>s · todo minúscula, el ◯ reemplaza la "o"</div></div>
+      <div class="kv"><div class="k">Tipografía</div><div class="v">Space Grotesk Bold (peso <code>700</code>)</div></div>
+      <div class="kv"><div class="k">Tracking</div><div class="v"><code>letter-spacing: -0.05em</code></div></div>
+      <div class="kv"><div class="k">Línea base del punto</div><div class="v">Centro vertical alineado a la altura-x de la "o" original</div></div>
+      <div class="kv"><div class="k">Diámetro del punto</div><div class="v">≈ 110% del ancho de la "o" tipográfica (corrección óptica)</div></div>
+      <div class="kv"><div class="k">Color del texto</div><div class="v"><code>#FFFDF7</code> sobre oscuro · <code>#1A1612</code> sobre claro</div></div>
+      <div class="kv"><div class="k">Color del punto</div><div class="v"><code>#FF5A1F</code> · sol · siempre, sin excepción</div></div>
+      <div class="kv"><div class="k">Sombra elíptica</div><div class="v"><code>rgba(#FF5A1F, 0.28)</code> · solo en lockup ≥ 48px · separación vertical 8% del diámetro</div></div>
+    </div>
+  </div>
+
+  <!-- 02 ESCALAS -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-num">02</div>
+      <div class="section-title">Variantes según tamaño</div>
+    </div>
+    <p class="section-lead">Cinco contextos de uso. La regla simple: <strong>la sombra solo aparece cuando hay aire para respirar</strong>.</p>
+
+    <div class="size-table">
+      <div class="row head">
+        <div class="cell">Caso</div>
+        <div class="cell">Tamaño</div>
+        <div class="cell">Cómo se renderiza</div>
+        <div class="cell preview">Vista</div>
+      </div>
+
+      <div class="row">
+        <div class="cell label-cell">Hero / portadas</div>
+        <div class="cell size-cell">≥ 96 px</div>
+        <div class="cell">Lockup completo <code style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg);padding:1px 5px;border-radius:3px">vam◯s</code> con sombra elíptica</div>
+        <div class="cell preview" style="background:var(--surface-inv)">
+          <div class="lck lck-dark" style="font-size:48px">vam<svg class="dot" width="0.54em" height="0.54em" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ff5a1f"/><ellipse cx="50" cy="130" rx="40" ry="4" fill="#ff5a1f" opacity="0.3"/></svg>s
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="cell label-cell">Header / nav</div>
+        <div class="cell size-cell">24-48 px</div>
+        <div class="cell">Lockup <code style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg);padding:1px 5px;border-radius:3px">vam◯s</code> sin sombra</div>
+        <div class="cell preview">
+          <div class="lck" style="font-size:32px">vam<svg class="dot" width="0.54em" height="0.54em" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ff5a1f"/></svg>s</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="cell label-cell">Body / inline</div>
+        <div class="cell size-cell">14-22 px</div>
+        <div class="cell">Lockup chico, punto = altura-x exacta</div>
+        <div class="cell preview">
+          <div class="lck" style="font-size:18px">vam<svg class="dot" width="0.54em" height="0.54em" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ff5a1f"/></svg>s</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="cell label-cell">App icon</div>
+        <div class="cell size-cell">60-1024 px</div>
+        <div class="cell">Solo el punto naranja, centrado, fondo grafito, en squircle iOS</div>
+        <div class="cell preview">
+          <div style="width:64px;height:64px;background:var(--surface-inv);border-radius:22%;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,0.08)">
+            <svg width="42" height="42" viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="#ff5a1f"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="cell label-cell">Favicon</div>
+        <div class="cell size-cell">16-32 px</div>
+        <div class="cell">Punto naranja sobre cuadrado grafito, esquinas suaves</div>
+        <div class="cell preview">
+          <div style="display:flex;gap:18px;align-items:center">
+            <div style="width:32px;height:32px;background:#1a1612;border-radius:6px;display:grid;place-items:center"><svg width="20" height="20" viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="#ff5a1f"/></svg></div>
+            <div style="width:16px;height:16px;background:#1a1612;border-radius:3px;display:grid;place-items:center"><svg width="10" height="10" viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="#ff5a1f"/></svg></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="cell label-cell">Wordmark plano</div>
+        <div class="cell size-cell">cualquiera</div>
+        <div class="cell">Texto <code style="font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--bg);padding:1px 5px;border-radius:3px">vamos</code> sin SVG (subjects de mail, URLs, asuntos)</div>
+        <div class="cell preview">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-2)">vamos.travel</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 RULES -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-num">03</div>
+      <div class="section-title">Reglas de uso</div>
+    </div>
+
+    <div class="rules">
+      <div class="rules-card ok">
+        <h3><span class="badge-icon">✓</span> Sí</h3>
+        <ul>
+          <li>El punto siempre <code>#FF5A1F</code> (sol) — sin excepciones</li>
+          <li>Texto crema sobre oscuro o grafito sobre claro</li>
+          <li>Sombra <strong>solo</strong> en lockup ≥ 48px</li>
+          <li>El punto puede animarse: pulso suave en loadings, micro-rebote al confirmar acción</li>
+          <li>Espacio mínimo alrededor del lockup = altura del punto</li>
+        </ul>
+      </div>
+      <div class="rules-card no">
+        <h3><span class="badge-icon">✕</span> No</h3>
+        <ul>
+          <li>No <code>vamos.</code> con punto final + pin (compiten dos remates)</li>
+          <li>No outline / contorno en el punto</li>
+          <li>No degradados ni texturas en el punto</li>
+          <li>No mayúsculas (<code>VAMOS</code> rompe la lectura del pin como "o")</li>
+          <li>No el pin solo (sin wordmark) salvo en app icon / favicon</li>
+          <li>No sombra en tamaños &lt; 48px</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 APPS -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-num">04</div>
+      <div class="section-title">Aplicaciones específicas</div>
+    </div>
+    <p class="section-lead">Cómo se traduce el sistema a los puntos de contacto reales del producto.</p>
+
+    <div class="apps">
+      <div class="app">
+        <div class="app-lbl">Email · subject line</div>
+        <div class="app-content">Tu viaje a Brasil está listo · vamos</div>
+      </div>
+      <div class="app">
+        <div class="app-lbl">URL del producto</div>
+        <div class="app-content mono">vamos.travel</div>
+      </div>
+      <div class="app">
+        <div class="app-lbl">Handle social</div>
+        <div class="app-content mono">@vamos.travel · @vamosapp</div>
+      </div>
+      <div class="app">
+        <div class="app-lbl">Firma de mails</div>
+        <div class="app-content">
+          <div class="lck" style="font-size:22px">vam<svg class="dot" width="0.54em" height="0.54em" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ff5a1f"/></svg>s</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:6px">lockup chico, sin sombra</div>
+        </div>
+      </div>
+      <div class="app">
+        <div class="app-lbl">Splash screen app</div>
+        <div class="app-content" style="display:flex;align-items:center;gap:14px;background:var(--surface-inv);color:rgba(255,253,247,0.85)">
+          <svg width="28" height="28" viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="#ff5a1f"/></svg>
+          Punto centrado, fondo grafito, fade-in 400ms
+        </div>
+      </div>
+      <div class="app">
+        <div class="app-lbl">OG image / link preview</div>
+        <div class="app-content" style="display:flex;align-items:center;gap:14px">
+          <div style="background:var(--surface-inv);padding:8px 12px;border-radius:6px">
+            <div class="lck lck-dark" style="font-size:18px">vam<svg class="dot" width="0.54em" height="0.54em" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#ff5a1f"/></svg>s</div>
+          </div>
+          Lockup grande con sombra · fondo grafito
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 VOICE -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-num">05</div>
+      <div class="section-title">Voice — cómo se nombra al producto</div>
+    </div>
+    <p class="section-lead">El lockup visual y el nombre escrito en frase no son lo mismo. Esta es la regla.</p>
+
+    <div class="block">
+      <div class="voice-row">
+        <div class="ctx">En frase</div>
+        <div class="ex">"abrí <em>Vamos</em> y armá tu viaje" · "te invité por <em>Vamos</em>"<br><span style="font-size:12px;color:var(--text-3)">Capital inicial, sin punto, sin estilizar</span></div>
+      </div>
+      <div class="voice-row">
+        <div class="ctx">En lockup visual</div>
+        <div class="ex">Siempre <em>vam◯s</em> con el pin · nunca tipográfico solo en hero/headers</div>
+      </div>
+      <div class="voice-row">
+        <div class="ctx">Nunca</div>
+        <div class="ex" style="color:var(--red)">VAMOS · Vamos! · Vamos.travel (como nombre del producto, no la URL)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 PUSH -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-num">06</div>
+      <div class="section-title">Notificaciones push</div>
+    </div>
+    <p class="section-lead">El touchpoint más frecuente del producto. Mismo sistema: ícono = punto naranja sobre grafito · texto en voice de Vamos (voseo sutil, herramienta competente).</p>
+
+    <div class="push-grid">
+
+      <div class="push-platform">
+        <div class="plat-lbl">iOS · Lock screen</div>
+        <div class="push-stage">
+          <div class="lock-time">9:41</div>
+          <div class="lock-date">jueves 15 de mayo</div>
+          <div class="stack">
+            <div class="push-card">
+              <div class="ico"><svg width="16" height="16" viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="#ff5a1f"/></svg></div>
+              <div class="body">
+                <div class="app-name">vamos</div>
+                <div class="title">Mati confirmó las fechas</div>
+                <div class="msg">12-22 jun · ya son 4 confirmados, falta Lu</div>
+              </div>
+              <div class="time">ahora</div>
+            </div>
+            <div class="push-card">
+              <div class="ico"><svg width="16" height="16" viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="#ff5a1f"/></svg></div>
+              <div class="body">
+                <div class="app-name">vamos</div>
+                <div class="title">Te toca votar</div>
+                <div class="msg">Hospedaje en Florianópolis · 3 opciones, cierra mañana</div>
+              </div>
+              <div class="time">14:30</div>
+            </div>
+            <div class="push-card">
+              <div class="ico"><svg width="16" height="16" viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="#ff5a1f"/></svg></div>
+              <div class="body">
+                <div class="app-name">vamos</div>
+                <div class="title">Sofi pagó el Airbnb</div>
+                <div class="msg">$240.000 · le debés $48.000</div>
+              </div>
+              <div class="time">12:14</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="push-platform">
+        <div class="plat-lbl">Android · Material</div>
+        <div class="push-stage android">
+          <div class="lock-time">9:41</div>
+          <div class="lock-date">jue, 15 may</div>
+          <div class="stack">
+            <div class="push-card android-card">
+              <div class="ico"><svg width="12" height="12" viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="#ff5a1f"/></svg></div>
+              <div class="body">
+                <div class="meta-line"><strong>vamos</strong> · ahora</div>
+                <div class="title">Mati confirmó las fechas</div>
+                <div class="msg">12-22 jun · ya son 4 confirmados, falta Lu</div>
+              </div>
+            </div>
+            <div class="push-card android-card">
+              <div class="ico"><svg width="12" height="12" viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="#ff5a1f"/></svg></div>
+              <div class="body">
+                <div class="meta-line"><strong>vamos</strong> · 14:30</div>
+                <div class="title">Te toca votar</div>
+                <div class="msg">Hospedaje en Florianópolis · 3 opciones</div>
+              </div>
+            </div>
+            <div class="push-card android-card">
+              <div class="ico"><svg width="12" height="12" viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="#ff5a1f"/></svg></div>
+              <div class="body">
+                <div class="meta-line"><strong>vamos</strong> · 12:14</div>
+                <div class="title">Sofi pagó el Airbnb</div>
+                <div class="msg">$240.000 · le debés $48.000</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="push-table">
+      <div class="row head">
+        <div class="cell">Evento del MVP</div>
+        <div class="cell">Copy del push</div>
+      </div>
+      <div class="row">
+        <div class="cell evt">Confirmación de fechas<span>F1 · armado del viaje</span></div>
+        <div class="cell"><div class="t">Mati confirmó las fechas</div><div class="b">12-22 jun · ya son 4 confirmados, falta Lu</div></div>
+      </div>
+      <div class="row">
+        <div class="cell evt">Apertura de votación<span>F2 · decisiones grupales</span></div>
+        <div class="cell"><div class="t">Te toca votar</div><div class="b">Hospedaje en Florianópolis · 3 opciones, cierra mañana</div></div>
+      </div>
+      <div class="row">
+        <div class="cell evt">Cierre de votación<span>F2 · decisiones grupales</span></div>
+        <div class="cell"><div class="t">Quedó: Pousada Verde</div><div class="b">5 votos a favor · Sofi reservó</div></div>
+      </div>
+      <div class="row">
+        <div class="cell evt">Gasto registrado<span>F3 · saldos</span></div>
+        <div class="cell"><div class="t">Sofi pagó el Airbnb</div><div class="b">$240.000 · le debés $48.000</div></div>
+      </div>
+      <div class="row">
+        <div class="cell evt">Saldo pendiente<span>F3 · saldos</span></div>
+        <div class="cell"><div class="t">Tenés 2 saldos por cerrar</div><div class="b">Mati te debe $32k · vos le debés $48k a Sofi</div></div>
+      </div>
+      <div class="row">
+        <div class="cell evt">Recordatorio (T-7)<span>cron · pre-viaje</span></div>
+        <div class="cell"><div class="t">Falta una semana</div><div class="b">Brasil 12-22 jun · todavía hay 2 cosas sin votar</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:18px;padding:18px 22px;background:var(--bg);border:1px solid var(--border);border-radius:12px;font-size:13px;color:var(--text-2);line-height:1.55">
+      <strong style="color:var(--text)">Reglas de copy para push:</strong> Sujeto humano ("Mati", "Sofi") + verbo en pasado/imperativo · datos crudos en la línea de detalle · cero exclamaciones · cero emoji · cero CTA hueco ("¡Mirá!", "¡No te lo pierdas!"). El push es la herramienta avisándote, no animándote.
+    </div>
+  </div>
+
+  <!-- CLOSE -->
+  <div class="close">
+    <div class="icon-confirm">→</div>
+    <p><strong>Manual cerrado.</strong> Si te cierra todo, decime "dale" y arranco el <strong>Paso 5: F1.3 "Tu viaje está listo"</strong> — la pantalla post-quiz, primer wow del producto. Es la mejor para mostrar paleta + tipo + logo + tono trabajando juntos. Si querés cambios al manual antes, decime cuáles.</p>
+  </div>
+
+</div>
+</body>
+</html>
