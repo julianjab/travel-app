@@ -15,19 +15,28 @@ class VamosSpacing {
 }
 
 /// Radios estándar.
+///
+/// Semantic assignments (non-negotiable):
+///   inputs   → brMd  (10)
+///   cards    → brLg  (14)
+///   buttons  → brFull (pill)
+///   dialogs  → brDialog (18)
 class VamosRadius {
   VamosRadius._();
 
-  static const Radius sm   = Radius.circular(6);
-  static const Radius md   = Radius.circular(10);
-  static const Radius lg   = Radius.circular(14);
-  static const Radius xl   = Radius.circular(20);
-  static const Radius full = Radius.circular(9999);
+  static const Radius sm     = Radius.circular(6);
+  static const Radius md     = Radius.circular(10);
+  static const Radius lg     = Radius.circular(14);
+  static const Radius dialog = Radius.circular(18);
+  static const Radius xl     = Radius.circular(20);
+  static const Radius full   = Radius.circular(9999);
 
-  static const BorderRadius brSm = BorderRadius.all(sm);
-  static const BorderRadius brMd = BorderRadius.all(md);
-  static const BorderRadius brLg = BorderRadius.all(lg);
-  static const BorderRadius brXl = BorderRadius.all(xl);
+  static const BorderRadius brSm     = BorderRadius.all(sm);
+  static const BorderRadius brMd     = BorderRadius.all(md);
+  static const BorderRadius brLg     = BorderRadius.all(lg);
+  static const BorderRadius brDialog = BorderRadius.all(dialog);
+  static const BorderRadius brXl     = BorderRadius.all(xl);
+  static const BorderRadius brFull   = BorderRadius.all(full);
 }
 
 /// Sombras estándar.

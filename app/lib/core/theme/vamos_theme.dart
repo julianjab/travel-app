@@ -128,14 +128,14 @@ class VamosTheme {
           foregroundColor: colorScheme.onPrimary,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: VamosSpacing.lg, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: VamosRadius.brMd),
+          shape: RoundedRectangleBorder(borderRadius: VamosRadius.brFull),
           textStyle: VamosTypography.titleMedium,
         ),
       ),
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: VamosRadius.brMd),
+          shape: RoundedRectangleBorder(borderRadius: VamosRadius.brFull),
           side: BorderSide(color: colorScheme.outline),
           textStyle: textTheme.labelLarge,
         ),
@@ -143,7 +143,7 @@ class VamosTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          shape: RoundedRectangleBorder(borderRadius: VamosRadius.brMd),
+          shape: RoundedRectangleBorder(borderRadius: VamosRadius.brFull),
           textStyle: textTheme.labelLarge,
         ),
       ),
@@ -177,7 +177,7 @@ class VamosTheme {
       ),
 
       dialogTheme: DialogThemeData(
-        shape: RoundedRectangleBorder(borderRadius: VamosRadius.brLg),
+        shape: RoundedRectangleBorder(borderRadius: VamosRadius.brDialog),
       ),
 
       bottomSheetTheme: const BottomSheetThemeData(

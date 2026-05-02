@@ -61,10 +61,10 @@ class TripCard extends StatelessWidget {
                   ),
                   const SizedBox(height: VamosSpacing.xs),
 
-                  // Dates are data → mono font per design-kit rule.
+                  // Dates and counts are data → monoMedium per design-kit rule 4.
                   Text(
                     '${_formatDateRange(trip.startDate, trip.endDate)} · $memberCount ${_personLabel(memberCount)}',
-                    style: VamosTypography.overline,
+                    style: VamosTypography.monoMedium.copyWith(color: VamosColors.text3),
                   ),
                   const SizedBox(height: VamosSpacing.xs),
 
