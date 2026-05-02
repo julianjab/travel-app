@@ -21,8 +21,11 @@ class MyTripsNotifier extends AutoDisposeStreamNotifier<List<Trip>> {
     const userId = _mockUserId;
 
     if (userId.isEmpty) {
-      // Not authenticated: emit empty list instead of crashing.
-      return const Stream.empty();
+      // Not authenticated yet (E0-06 pending). Emit an empty list so the
+      // notifier resolves to AsyncValue.data([]) instead of staying stuck
+      // in loading. Stream.empty() closes without emitting, which would
+      // freeze the screen on the loading spinner.
+      return Stream.value(const <Trip>[]);
     }
 
     return ref
