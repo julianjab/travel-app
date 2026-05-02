@@ -104,27 +104,27 @@ Context:
 - Linked docs already loaded.
 - DO NOT write code. Only the plan.
 
-Produce a markdown section called "## Plan técnico" containing:
-
-### Archivos a tocar
-- Bullet list of file paths (existing or new) with one-line "why".
+Produce a markdown section called "## Plan técnico" with EXACTLY this shape and nothing else:
 
 ### Subtareas
-- 3 to 8 GitHub-checkbox items (`- [ ] ...`), each:
-  - Self-contained (one commit's worth of work).
-  - Specific (mentions file or function, not "implement feature").
-  - Verifiable (has a clear "done" signal).
+- [ ] <one commit of work> (`<file/path>`)
+- [ ] ...
+(3 to 7 items. Each names the concrete file or function. Each is verifiable.)
 
-### Pruebas / verificación
-- How to verify the **Done:** criterion concretely (CLI commands, manual steps, expected output).
+### No hacer
+- <thing the implementer might be tempted to do but is out of scope>
+(1 to 3 bullets max. Reference the owning issue ID if applicable, e.g. "es F2-01".)
 
-### Fuera de alcance (explícito)
-- 1-3 bullets of what the implementer MUST NOT do, even if tempted.
+### Notas
+- <gotchas, dependencies, or decisions the implementer can't make alone>
+(0 to 3 bullets. Skip the section if there are no notes.)
 
-### Riesgos / dudas
-- 0-3 bullets of trade-offs or unknowns the implementer should escalate, not decide alone.
-
-Be concise. Each section under 8 lines. No prose paragraphs.
+Hard limits:
+- Total length under 25 lines.
+- No prose paragraphs.
+- No "files to touch" section: file paths live INSIDE the subtasks.
+- No "verification" section: the issue body already has **Done:**.
+- No fluff like "this is important" or "be careful".
 ```
 
 ### 6. Write the plan into the issue body
@@ -141,7 +141,7 @@ NEW_BODY="$CURRENT_BODY
 
 ## Plan técnico
 
-_Refinado por \`/refine\` el $(date -u +%Y-%m-%dT%H:%MZ). Editá libremente antes de \`/take\`._
+_$(date -u +%Y-%m-%d) · scope: IN_SCOPE_
 
 <plan generated in step 5>
 "
