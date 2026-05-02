@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
-import 'package:vamos/core/theme/vamos_logo.dart';
 import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/data/models/trip.dart';
@@ -67,10 +66,6 @@ class _Header extends StatelessWidget {
   final TripStatus status;
   final DateTime now;
 
-  // All headers share the dark background — the ongoing state is signaled by
-  // the orange overline, not by flooding the entire header with sol500.
-  Color get _bg => VamosColors.bgDark;
-
   Color get _titleColor => switch (status) {
     TripStatus.finished || TripStatus.archived => VamosColors.text3Dark,
     _ => VamosColors.textDark,
@@ -80,14 +75,29 @@ class _Header extends StatelessWidget {
   Color get _metaColor =>
       status == TripStatus.ongoing ? VamosColors.sol500 : VamosColors.text3Dark;
 
-  // Brand dot always orange on the dark header.
-  Color get _dotColor => VamosColors.sol500;
+  // Ongoing: top-left sol500 glow fading to bgDark. Others: flat dark.
+  BoxDecoration get _decoration {
+    if (status != TripStatus.ongoing) {
+      return const BoxDecoration(color: VamosColors.bgDark);
+    }
+    return BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color.lerp(VamosColors.bgDark, VamosColors.sol500, 0.38)!,
+          VamosColors.bgDark,
+        ],
+        stops: const [0.0, 0.65],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: _bg,
+      decoration: _decoration,
       padding: const EdgeInsets.all(VamosSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,11 +107,7 @@ class _Header extends StatelessWidget {
             style: VamosTypography.overline.copyWith(color: _metaColor),
           ),
           const SizedBox(height: VamosSpacing.xs),
-          _TripTitle(
-            name: trip.name,
-            textColor: _titleColor,
-            dotColor: _dotColor,
-          ),
+          _TripTitle(name: trip.name, textColor: _titleColor),
           const SizedBox(height: VamosSpacing.xs),
           _MetaRow(trip: trip, status: status, now: now, color: _metaColor),
         ],
@@ -154,85 +160,50 @@ class _Header extends StatelessWidget {
   }
 }
 
-// Trip name + brand dot (the "O" mark of vam◯s applied to the trip title).
-//
-// If the name contains an "o"/"O", the LAST one is painted dotColor — connecting
-// visually with the VamosLogoMark circle. Rule: opportunistic, never forced.
-// If the title would truncate (measured via TextPainter), the coloring is skipped
-// to avoid a painted "o" disappearing mid-word in the ellipsis.
+// Trip name. If the name contains an "o"/"O", the LAST one is painted sol500 —
+// a nod to the vam◯s mark. Opportunistic: skipped when the title truncates to
+// avoid a colored "o" disappearing mid-ellipsis.
 class _TripTitle extends StatelessWidget {
-  const _TripTitle({
-    required this.name,
-    required this.textColor,
-    required this.dotColor,
-  });
+  const _TripTitle({required this.name, required this.textColor});
 
   final String name;
   final Color textColor;
-  final Color dotColor;
-
-  static const _dotSize = 24.0;
-  // Space the logo mark takes from available row width.
-  static const _dotReserved = _dotSize + VamosSpacing.xs;
 
   @override
   Widget build(BuildContext context) {
     final style = VamosTypography.displayMedium.copyWith(color: textColor);
     final lastO = name.lastIndexOf(RegExp(r'[oO]'));
 
-    final logoMark = Padding(
-      padding: const EdgeInsets.only(left: VamosSpacing.xs),
-      child: VamosLogoMark(size: _dotSize, color: dotColor),
-    );
-
     if (lastO == -1) {
-      // No "o" in name — plain title.
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Text(name, style: style, maxLines: 2, overflow: TextOverflow.ellipsis),
-          ),
-          logoMark,
-        ],
-      );
+      return Text(name, style: style, maxLines: 2, overflow: TextOverflow.ellipsis);
     }
 
-    // Use LayoutBuilder to know the available text width before deciding.
     return LayoutBuilder(
       builder: (context, constraints) {
-        final textWidth = constraints.maxWidth - _dotReserved;
         final painter = TextPainter(
           text: TextSpan(text: name, style: style),
           maxLines: 2,
           textDirection: TextDirection.ltr,
-        )..layout(maxWidth: textWidth);
+        )..layout(maxWidth: constraints.maxWidth);
 
-        final titleWidget = painter.didExceedMaxLines
-            // Truncated — skip coloring to avoid a painted "o" cut mid-word.
-            ? Text(name, style: style, maxLines: 2, overflow: TextOverflow.ellipsis)
-            : RichText(
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                text: TextSpan(
-                  children: [
-                    if (lastO > 0) TextSpan(text: name.substring(0, lastO), style: style),
-                    TextSpan(
-                      text: name[lastO],
-                      style: style.copyWith(color: dotColor),
-                    ),
-                    if (lastO < name.length - 1)
-                      TextSpan(text: name.substring(lastO + 1), style: style),
-                  ],
-                ),
-              );
+        if (painter.didExceedMaxLines) {
+          return Text(name, style: style, maxLines: 2, overflow: TextOverflow.ellipsis);
+        }
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(child: titleWidget),
-            logoMark,
-          ],
+        return RichText(
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          text: TextSpan(
+            children: [
+              if (lastO > 0) TextSpan(text: name.substring(0, lastO), style: style),
+              TextSpan(
+                text: name[lastO],
+                style: style.copyWith(color: VamosColors.sol500),
+              ),
+              if (lastO < name.length - 1)
+                TextSpan(text: name.substring(lastO + 1), style: style),
+            ],
+          ),
         );
       },
     );
