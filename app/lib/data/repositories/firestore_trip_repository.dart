@@ -1,0 +1,73 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vamos/data/firebase/firebase_providers.dart';
+import 'package:vamos/data/models/trip.dart';
+import 'package:vamos/data/repositories/trip_repository.dart';
+
+/// Firestore implementation of [TripRepository].
+///
+/// This is the ONLY file in the app that imports `cloud_firestore` for trips.
+/// Widgets, notifiers, and tests never reference this class directly — they
+/// depend on the [TripRepository] abstract type via [tripRepositoryProvider].
+///
+/// See `app/CLAUDE.md` §Hard rules — rule 1.
+class FirestoreTripRepository implements TripRepository {
+  const FirestoreTripRepository(this._firestore);
+
+  final FirebaseFirestore _firestore;
+
+  CollectionReference<Map<String, dynamic>> get _trips =>
+      _firestore.collection('trips');
+
+  // ---------------------------------------------------------------------------
+  // Read
+  // ---------------------------------------------------------------------------
+
+  /// Streams all active trips the [userId] belongs to, ordered by [startDate].
+  ///
+  /// Filters: `memberIds array-contains userId` AND `status == "active"`.
+  /// Sorting by [startDate] ascending is done in Firestore using the compound
+  /// index declared in `firestore.indexes.json`
+  /// (`memberIds array-contains, status, startDate desc`).
+  ///
+  /// The notifier ([MyTripsNotifier]) applies the in-memory sort that groups by
+  /// computed status (ongoing → upcoming → finished → archived) because that
+  /// ordering depends on the current date, which Firestore cannot compute.
+  @override
+  Stream<List<Trip>> watchUserTrips(String userId) {
+    return _trips
+        .where('memberIds', arrayContains: userId)
+        .where('status', isEqualTo: 'active')
+        .orderBy('startDate')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Trip.fromFirestore(
+                  doc as DocumentSnapshot<Map<String, dynamic>>,
+                ))
+            .toList());
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Riverpod provider
+// ---------------------------------------------------------------------------
+
+/// Provides the [TripRepository] implementation.
+///
+/// Returns the abstract [TripRepository] type — callers never see
+/// [FirestoreTripRepository]. To override in tests or dev mode:
+///
+/// ```dart
+/// ProviderScope(
+///   overrides: [
+///     tripRepositoryProvider.overrideWithValue(MockTripRepository()),
+///   ],
+///   child: MyApp(),
+/// )
+/// ```
+///
+/// Not autoDispose — the repository is stateless and cheap to keep alive.
+final tripRepositoryProvider = Provider<TripRepository>((ref) {
+  final firestore = ref.watch(firestoreProvider);
+  return FirestoreTripRepository(firestore);
+});

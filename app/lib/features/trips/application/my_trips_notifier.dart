@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vamos/data/models/trip.dart';
-import 'package:vamos/data/repositories/trip_repository.dart';
+import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/features/trips/domain/trip_status.dart';
 
 /// Streams the current user's trips, sorted for the F1.1 list:
