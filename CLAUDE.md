@@ -156,6 +156,7 @@ Defined under `.claude/skills/`:
 - `/refine <issue>` — technical refinement: scope check + subtask checklist into the issue body. Required before `/take`.
 - `/take <issue>` — start working an issue (worktree + context + background implementer that ticks off subtasks).
 - `/done` — close the loop (review + push + PR with `Closes #N`).
+- `/autopilot` — fully autonomous pipeline: processes every Todo issue sequentially (refine → implement → PR → merge → next) without human gates. Designed for solo preliminary dev where no one else is affected. Flags: `--from <id>`, `--only <id>`, `--dry-run`.
 
 Both depend on `gh` having `project` scope. Token lives in `~/.profile` (`GH_TOKEN` / `GITHUB_TOKEN`). If commands fail with `missing scope` or `HTTP 401`, rotate the PAT at https://github.com/settings/tokens with scopes `repo` + `project` and update `~/.profile`.
 
