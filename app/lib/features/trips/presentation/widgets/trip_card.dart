@@ -128,7 +128,7 @@ class _StatusChip extends StatelessWidget {
   String _label() {
     switch (status) {
       case TripStatus.upcoming:
-        return 'PRÓXIMO · EN ARMADO';
+        return 'PRÓXIMO';
       case TripStatus.ongoing:
         final today = DateTime(now.year, now.month, now.day);
         final s = DateTime(
