@@ -5,11 +5,17 @@ import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/trips/domain/trip_status.dart';
 
-/// Trip card — Variación B (hero grafito).
+/// Trip card — layout plano, sin split header/body.
 ///
-/// Header full-bleed colored by trip status, title in Space Grotesk +
-/// brand orange dot, mono meta row. Body: status notification + member
-/// pills + "Abrir →". Defined in wireframe F1.1.
+/// ┌──────────────────────────────────────────┐
+/// │ 🟢 EN CURSO · DÍA 9 DE 18                │  status chip (mono)
+/// │ Familia extendida                         │  nombre del viaje (display)
+/// │ Barranquilla, Colombia                    │  destino (title)
+/// │ 🔵🟡🟢  +2              15 abr — 3 may   │  pills + rango de fechas
+/// └──────────────────────────────────────────┘
+///
+/// La card entera es el área tappable — sin botón "Abrir →".
+/// Para viajes activos, el fondo lleva un degradado sutil sol500 en esquina.
 class TripCard extends StatelessWidget {
   const TripCard({
     super.key,
@@ -31,94 +37,98 @@ class TripCard extends StatelessWidget {
       isArchived: trip.status == 'archived',
       now: now,
     );
+    final cs = Theme.of(context).colorScheme;
 
-    // Card shape + border come from CardThemeData in vamos_theme.dart.
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _Header(trip: trip, status: status, now: now),
-            _Body(
-              trip: trip,
-              status: status,
-              now: now,
-              memberCount: memberCount,
-              onTap: onTap,
+        child: Ink(
+          decoration: _cardDecoration(status, cs),
+          child: Padding(
+            padding: const EdgeInsets.all(VamosSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _StatusChip(status: status, trip: trip, now: now),
+                const SizedBox(height: VamosSpacing.sm),
+                _TripName(name: trip.name, status: status),
+                const SizedBox(height: VamosSpacing.xs),
+                _DestinationLine(destination: trip.destination),
+                const SizedBox(height: VamosSpacing.sm),
+                _BottomRow(trip: trip),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
-}
 
-// ---------------------------------------------------------------------------
-// Header
-// ---------------------------------------------------------------------------
-
-class _Header extends StatelessWidget {
-  const _Header({required this.trip, required this.status, required this.now});
-
-  final Trip trip;
-  final TripStatus status;
-  final DateTime now;
-
-  Color get _titleColor => switch (status) {
-    TripStatus.finished || TripStatus.archived => VamosColors.text3Dark,
-    _ => VamosColors.textDark,
-  };
-
-  // Ongoing overline is sol500 (orange accent); all others are graphite-muted.
-  Color get _metaColor =>
-      status == TripStatus.ongoing ? VamosColors.sol500 : VamosColors.text3Dark;
-
-  // Ongoing: top-left sol500 glow fading to bgDark. Others: flat dark.
-  BoxDecoration get _decoration {
+  static BoxDecoration _cardDecoration(TripStatus status, ColorScheme cs) {
     if (status != TripStatus.ongoing) {
-      return const BoxDecoration(color: VamosColors.bgDark);
+      return BoxDecoration(color: cs.surface);
     }
     return BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color.lerp(VamosColors.bgDark, VamosColors.sol500, 0.38)!,
-          VamosColors.bgDark,
+          cs.surface,
+          Color.lerp(cs.surface, VamosColors.sol500, 0.20)!,
         ],
-        stops: const [0.0, 0.65],
+        stops: const [0.45, 1.0],
       ),
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Status chip — dot + mono label
+// ---------------------------------------------------------------------------
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({required this.status, required this.trip, required this.now});
+
+  final TripStatus status;
+  final Trip trip;
+  final DateTime now;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: _decoration,
-      padding: const EdgeInsets.all(VamosSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _statusLabel(now),
-            style: VamosTypography.overline.copyWith(color: _metaColor),
-          ),
-          const SizedBox(height: VamosSpacing.xs),
-          _TripTitle(name: trip.name, textColor: _titleColor),
-          const SizedBox(height: VamosSpacing.xs),
-          _MetaRow(trip: trip, status: status, now: now, color: _metaColor),
-        ],
-      ),
+    final isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
+    final dotColor = _dotColor(isDark);
+    final labelColor = status == TripStatus.ongoing
+        ? VamosColors.sol500
+        : (isDark ? VamosColors.text3Dark : VamosColors.text3);
+
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: VamosSpacing.xs),
+        Text(
+          _label(),
+          style: VamosTypography.overline.copyWith(color: labelColor),
+        ),
+      ],
     );
   }
 
-  String _statusLabel(DateTime now) {
+  Color _dotColor(bool isDark) => switch (status) {
+    TripStatus.upcoming => VamosColors.warning,
+    TripStatus.ongoing => VamosColors.green,
+    TripStatus.finished => isDark ? VamosColors.text3Dark : VamosColors.text3,
+    TripStatus.archived => VamosColors.textMuted,
+  };
+
+  String _label() {
     switch (status) {
       case TripStatus.upcoming:
-        return 'PRÓXIMO VIAJE · EN ARMADO';
+        return 'PRÓXIMO · EN ARMADO';
       case TripStatus.ongoing:
         final today = DateTime(now.year, now.month, now.day);
         final s = DateTime(
@@ -133,7 +143,7 @@ class _Header extends StatelessWidget {
         );
         final day = today.difference(s).inDays + 1;
         final total = e.difference(s).inDays + 1;
-        return 'EN VIAJE · DÍA $day DE $total';
+        return 'EN CURSO · DÍA $day DE $total';
       case TripStatus.finished:
         return 'CERRADO · ${_monthYear(trip.endDate)}';
       case TripStatus.archived:
@@ -143,34 +153,33 @@ class _Header extends StatelessWidget {
 
   static String _monthYear(DateTime d) {
     const months = [
-      'ENE',
-      'FEB',
-      'MAR',
-      'ABR',
-      'MAY',
-      'JUN',
-      'JUL',
-      'AGO',
-      'SEP',
-      'OCT',
-      'NOV',
-      'DIC',
+      'ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN',
+      'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC',
     ];
     return '${months[d.month - 1]} ${d.year}';
   }
 }
 
-// Trip name. If the name contains an "o"/"O", the LAST one is painted sol500 —
-// a nod to the vam◯s mark. Opportunistic: skipped when the title truncates to
-// avoid a colored "o" disappearing mid-ellipsis.
-class _TripTitle extends StatelessWidget {
-  const _TripTitle({required this.name, required this.textColor});
+// ---------------------------------------------------------------------------
+// Trip name — Space Grotesk display, last "o" painted sol500 when fits
+// ---------------------------------------------------------------------------
+
+class _TripName extends StatelessWidget {
+  const _TripName({required this.name, required this.status});
 
   final String name;
-  final Color textColor;
+  final TripStatus status;
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final isDark = cs.brightness == Brightness.dark;
+    final textColor = switch (status) {
+      TripStatus.finished || TripStatus.archived =>
+        isDark ? VamosColors.text3Dark : VamosColors.text3,
+      _ => cs.onSurface,
+    };
+
     final style = VamosTypography.displayMedium.copyWith(color: textColor);
     final lastO = name.lastIndexOf(RegExp(r'[oO]'));
 
@@ -178,6 +187,8 @@ class _TripTitle extends StatelessWidget {
       return Text(name, style: style, maxLines: 2, overflow: TextOverflow.ellipsis);
     }
 
+    // Measure first: skip coloring if the title would truncate to avoid a
+    // colored "o" disappearing mid-ellipsis.
     return LayoutBuilder(
       builder: (context, constraints) {
         final painter = TextPainter(
@@ -195,7 +206,8 @@ class _TripTitle extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           text: TextSpan(
             children: [
-              if (lastO > 0) TextSpan(text: name.substring(0, lastO), style: style),
+              if (lastO > 0)
+                TextSpan(text: name.substring(0, lastO), style: style),
               TextSpan(
                 text: name[lastO],
                 style: style.copyWith(color: VamosColors.sol500),
@@ -210,209 +222,76 @@ class _TripTitle extends StatelessWidget {
   }
 }
 
-// Dates + destination meta row (format varies by status).
-class _MetaRow extends StatelessWidget {
-  const _MetaRow({
-    required this.trip,
-    required this.status,
-    required this.now,
-    required this.color,
-  });
+// ---------------------------------------------------------------------------
+// Destination — second line, clear but subordinate to the name
+// ---------------------------------------------------------------------------
 
-  final Trip trip;
-  final TripStatus status;
-  final DateTime now;
-  final Color color;
+class _DestinationLine extends StatelessWidget {
+  const _DestinationLine({required this.destination});
+
+  final String destination;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
     return Text(
-      _meta(),
-      style: VamosTypography.monoMedium.copyWith(color: color),
+      destination,
+      style: VamosTypography.titleMedium.copyWith(
+        color: isDark ? VamosColors.text2Dark : VamosColors.text2,
+      ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     );
   }
+}
 
-  String _meta() {
-    final dest = trip.destination;
-    switch (status) {
-      case TripStatus.upcoming:
-        return '${_dateRange()}  ·  $dest';
-      case TripStatus.ongoing:
-        return 'Hasta ${_shortDate(trip.endDate)}  ·  $dest';
-      case TripStatus.finished:
-      case TripStatus.archived:
-        final days = _durationDays();
-        return '$days días  ·  $dest';
-    }
+// ---------------------------------------------------------------------------
+// Bottom row — member pills (left) + date range (right)
+// ---------------------------------------------------------------------------
+
+class _BottomRow extends StatelessWidget {
+  const _BottomRow({required this.trip});
+
+  final Trip trip;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
+    return Row(
+      children: [
+        _MemberPills(memberIds: trip.memberIds),
+        const Spacer(),
+        Text(
+          _dateRange(),
+          style: VamosTypography.monoMedium.copyWith(
+            color: isDark ? VamosColors.text3Dark : VamosColors.text3,
+          ),
+        ),
+      ],
+    );
   }
 
   String _dateRange() {
     final s = trip.startDate;
     final e = trip.endDate;
     const m = [
-      'ene',
-      'feb',
-      'mar',
-      'abr',
-      'may',
-      'jun',
-      'jul',
-      'ago',
-      'sep',
-      'oct',
-      'nov',
-      'dic',
+      'ene', 'feb', 'mar', 'abr', 'may', 'jun',
+      'jul', 'ago', 'sep', 'oct', 'nov', 'dic',
     ];
-    if (s.month == e.month && s.year == e.year) {
-      return '${s.day} — ${e.day} ${m[e.month - 1]}';
+    if (s.year != e.year) {
+      return '${s.day} ${m[s.month - 1]} ${s.year} — ${e.day} ${m[e.month - 1]} ${e.year}';
     }
-    return '${s.day} ${m[s.month - 1]} — ${e.day} ${m[e.month - 1]}';
-  }
-
-  String _shortDate(DateTime d) {
-    const m = [
-      'ene',
-      'feb',
-      'mar',
-      'abr',
-      'may',
-      'jun',
-      'jul',
-      'ago',
-      'sep',
-      'oct',
-      'nov',
-      'dic',
-    ];
-    return '${d.day} ${m[d.month - 1]}';
-  }
-
-  String _durationDays() {
-    final s = DateTime(
-      trip.startDate.year,
-      trip.startDate.month,
-      trip.startDate.day,
-    );
-    final e = DateTime(trip.endDate.year, trip.endDate.month, trip.endDate.day);
-    return '${e.difference(s).inDays + 1}';
+    if (s.month != e.month) {
+      return '${s.day} ${m[s.month - 1]} — ${e.day} ${m[e.month - 1]}';
+    }
+    return '${s.day} — ${e.day} ${m[e.month - 1]}';
   }
 }
 
 // ---------------------------------------------------------------------------
-// Body
+// Member pills — overlapping circles, max 4 + overflow chip
 // ---------------------------------------------------------------------------
 
-class _Body extends StatelessWidget {
-  const _Body({
-    required this.trip,
-    required this.status,
-    required this.now,
-    required this.memberCount,
-    required this.onTap,
-  });
-
-  final Trip trip;
-  final TripStatus status;
-  final DateTime now;
-  final int memberCount;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(VamosSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _StatusRow(status: status),
-          const SizedBox(height: VamosSpacing.sm),
-          Row(
-            children: [
-              _MemberPills(memberIds: trip.memberIds),
-              const Spacer(),
-              GestureDetector(
-                onTap: onTap,
-                child: Text(
-                  'Abrir →',
-                  style: VamosTypography.titleMedium.copyWith(
-                    color: VamosColors.sol500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusRow extends StatelessWidget {
-  const _StatusRow({required this.status});
-
-  final TripStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final isDark = cs.brightness == Brightness.dark;
-    final mutedColor = isDark ? VamosColors.text2Dark : VamosColors.text2;
-
-    final (dotColor, boldText, rest) = switch (status) {
-      TripStatus.upcoming => (
-        VamosColors.warning,
-        'Por confirmar',
-        ' · todavía no hay gastos.',
-      ),
-      TripStatus.ongoing => (VamosColors.green, 'En curso', ' · viaje activo.'),
-      TripStatus.finished => (
-        isDark ? VamosColors.text3Dark : VamosColors.text3,
-        'Terminado',
-        ' · revisá los saldos.',
-      ),
-      TripStatus.archived => (VamosColors.textMuted, 'Archivado', ''),
-    };
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 5),
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
-          ),
-        ),
-        const SizedBox(width: VamosSpacing.xs),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: boldText,
-                  style: VamosTypography.bodyMedium.copyWith(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (rest.isNotEmpty)
-                  TextSpan(
-                    text: rest,
-                    style: VamosTypography.bodyMedium.copyWith(color: mutedColor),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// Overlapping colored circles — one per member, max 4 visible + overflow chip.
 class _MemberPills extends StatelessWidget {
   const _MemberPills({required this.memberIds});
 
@@ -454,7 +333,6 @@ class _MemberPills extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Sized box so Stack has width.
           SizedBox(
             width:
                 visible.length * (_size - _overlap) +
@@ -480,9 +358,7 @@ class _MemberPills extends StatelessWidget {
               left: visible.length * (_size - _overlap),
               child: Container(
                 height: _size,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: VamosSpacing.xs,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: VamosSpacing.xs),
                 decoration: BoxDecoration(
                   color: chipBg,
                   borderRadius: VamosRadius.brFull,
