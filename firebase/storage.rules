@@ -1,8 +1,6 @@
 rules_version = '2';
 
-// PLACEHOLDER — reglas de Storage.
-// Se completan cuando se implemente el primer flujo que sube fotos
-// (probablemente F1.2 con la foto de portada del viaje).
+// Deny-all base. Per-path rules are added when F1.2 (cover photo upload) is implemented.
 
 service firebase.storage {
   match /b/{bucket}/o {

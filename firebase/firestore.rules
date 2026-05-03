@@ -1,13 +1,9 @@
 rules_version = '2';
 
-// PLACEHOLDER — esqueleto de reglas.
-// La versión completa se cierra en docs/07-firestore-rules.md (pendiente).
-// Mientras tanto, ver docs/05-modelo-datos-2.md §4 para el esqueleto base.
+// Deny-all base. Per-collection rules are added as each MVP flow is implemented (X-01).
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Bloquear todo por default. Reglas específicas se agregan cuando se
-    // implemente cada flujo del MVP.
     match /{document=**} {
       allow read, write: if false;
     }
