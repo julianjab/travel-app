@@ -70,14 +70,14 @@ class TripCard extends StatelessWidget {
       return BoxDecoration(color: cs.surface);
     }
     return BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
+      gradient: RadialGradient(
+        center: Alignment.bottomRight,
+        radius: 0.85,
         colors: [
+          Color.lerp(cs.surface, VamosColors.sol500, 0.28)!,
           cs.surface,
-          Color.lerp(cs.surface, VamosColors.sol500, 0.20)!,
         ],
-        stops: const [0.45, 1.0],
+        stops: const [0.0, 1.0],
       ),
     );
   }
@@ -161,7 +161,7 @@ class _StatusChip extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Trip name — Space Grotesk display, last "o" painted sol500 when fits
+// Trip name — Space Grotesk display, plain
 // ---------------------------------------------------------------------------
 
 class _TripName extends StatelessWidget {
@@ -180,44 +180,11 @@ class _TripName extends StatelessWidget {
       _ => cs.onSurface,
     };
 
-    final style = VamosTypography.displayMedium.copyWith(color: textColor);
-    final lastO = name.lastIndexOf(RegExp(r'[oO]'));
-
-    if (lastO == -1) {
-      return Text(name, style: style, maxLines: 2, overflow: TextOverflow.ellipsis);
-    }
-
-    // Measure first: skip coloring if the title would truncate to avoid a
-    // colored "o" disappearing mid-ellipsis.
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final painter = TextPainter(
-          text: TextSpan(text: name, style: style),
-          maxLines: 2,
-          textDirection: TextDirection.ltr,
-        )..layout(maxWidth: constraints.maxWidth);
-
-        if (painter.didExceedMaxLines) {
-          return Text(name, style: style, maxLines: 2, overflow: TextOverflow.ellipsis);
-        }
-
-        return RichText(
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          text: TextSpan(
-            children: [
-              if (lastO > 0)
-                TextSpan(text: name.substring(0, lastO), style: style),
-              TextSpan(
-                text: name[lastO],
-                style: style.copyWith(color: VamosColors.sol500),
-              ),
-              if (lastO < name.length - 1)
-                TextSpan(text: name.substring(lastO + 1), style: style),
-            ],
-          ),
-        );
-      },
+    return Text(
+      name,
+      style: VamosTypography.displayMedium.copyWith(color: textColor),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }
