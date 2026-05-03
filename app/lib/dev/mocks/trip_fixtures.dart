@@ -82,7 +82,7 @@ abstract class TripFixtures {
     final members = _pickMembers();
     return Trip(
       id: id ?? 'trip_ongoing_${_rng.nextInt(9999)}',
-      name: '${_pick(_tripNames)} · ${_pick(_destinations).split(',')[0]}',
+      name: _pick(_tripNames),
       destination: _pick(_destinations),
       startDate: now.subtract(Duration(days: daysAgo)),
       endDate: now.add(Duration(days: daysLeft)),
@@ -104,7 +104,7 @@ abstract class TripFixtures {
     final members = _pickMembers();
     return Trip(
       id: id ?? 'trip_upcoming_${_rng.nextInt(9999)}',
-      name: '${_pick(_tripNames)} · ${_pick(_destinations).split(',')[0]}',
+      name: _pick(_tripNames),
       destination: _pick(_destinations),
       startDate: now.add(Duration(days: daysAhead)),
       endDate: now.add(Duration(days: daysAhead + 10)),
@@ -126,7 +126,7 @@ abstract class TripFixtures {
     final members = _pickMembers();
     return Trip(
       id: id ?? 'trip_finished_${_rng.nextInt(9999)}',
-      name: '${_pick(_tripNames)} · ${_pick(_destinations).split(',')[0]}',
+      name: _pick(_tripNames),
       destination: _pick(_destinations),
       startDate: now.subtract(Duration(days: daysAgo + 10)),
       endDate: now.subtract(Duration(days: daysAgo)),
