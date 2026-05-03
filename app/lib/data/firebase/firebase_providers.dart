@@ -19,10 +19,6 @@ final firestoreProvider = Provider<FirebaseFirestore>((ref) {
   return FirebaseFirestore.instance;
 });
 
-/// Exposes the current [User] as a stream.
-///
-/// autoDispose because any screen that cares about auth state manages its
-/// own lifecycle. The auth redirect lives in the router, not here.
-final authStateProvider = StreamProvider.autoDispose<User?>((ref) {
-  return ref.watch(authProvider).authStateChanges();
-});
+// authStateProvider is defined in features/auth/application/auth_notifier.dart.
+// It is a global (no autoDispose) StreamProvider<User?> that the router
+// refresh listens to. Import it from there — do not duplicate it here.
