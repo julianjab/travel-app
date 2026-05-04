@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vamos/features/auth/presentation/login_screen.dart';
+import 'package:vamos/features/trips/presentation/create_trip_screen.dart';
 import 'package:vamos/features/trips/presentation/my_trips_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -38,9 +39,9 @@ class _AuthChangeNotifier extends ChangeNotifier {
 /// Application router.
 ///
 /// Routes:
-///   /login          → [LoginScreen]    (unauthenticated)
-///   /trips          → [MyTripsScreen]  (authenticated home, F1.1)
-///   /trips/new      → stub for F1.2
+///   /login          → [LoginScreen]       (unauthenticated)
+///   /trips          → [MyTripsScreen]     (authenticated home, F1.1)
+///   /trips/new      → [CreateTripScreen]  (create trip form, F1.2)
 ///   /trips/:id      → stub for F2.1
 ///
 /// Redirect logic:
@@ -73,10 +74,10 @@ final router = GoRouter(
       path: '/trips',
       builder: (context, state) => const MyTripsScreen(),
       routes: [
-        // TODO(F1-02): replace stub with CreateTripScreen when F1.2 is built.
+        // F1.2 — Crear viaje form.
         GoRoute(
           path: 'new',
-          builder: (context, state) => const _StubScreen(title: 'Nuevo viaje'),
+          builder: (context, state) => const CreateTripScreen(),
         ),
         // TODO(F2-01): replace stub with TripShellScreen when F2.1 is built.
         GoRoute(
