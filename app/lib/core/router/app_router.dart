@@ -1,19 +1,71 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vamos/features/auth/presentation/login_screen.dart';
 import 'package:vamos/features/trips/presentation/my_trips_screen.dart';
+
+// ---------------------------------------------------------------------------
+// Auth change notifier — bridges Firebase Auth stream to GoRouter
+// ---------------------------------------------------------------------------
+
+/// A thin [ChangeNotifier] that listens to [FirebaseAuth.authStateChanges]
+/// and calls [notifyListeners] on every emission.
+///
+/// Used as [GoRouter.refreshListenable] so the router re-evaluates the
+/// redirect whenever auth state changes (sign-in, sign-out, token refresh).
+/// Accessing [FirebaseAuth] here directly is acceptable — this is router
+/// config, not UI or business logic.
+class _AuthChangeNotifier extends ChangeNotifier {
+  _AuthChangeNotifier() {
+    _subscription = FirebaseAuth.instance.authStateChanges().listen(
+      (_) => notifyListeners(),
+    );
+  }
+
+  late final dynamic _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Router
+// ---------------------------------------------------------------------------
 
 /// Application router.
 ///
-/// Routes declared here:
+/// Routes:
+///   /login          → [LoginScreen]    (unauthenticated)
 ///   /trips          → [MyTripsScreen]  (authenticated home, F1.1)
-///   /trips/new      → stub for F1.2 (create trip form)
-///   /trips/:id      → stub for F2.1 (trip shell with tabs)
+///   /trips/new      → stub for F1.2
+///   /trips/:id      → stub for F2.1
 ///
-/// Auth redirect is not wired yet — it will be added when E0-06 (auth) lands.
-/// TODO(F1-01): add redirect in refreshListenable once authStateProvider exists.
+/// Redirect logic:
+///   - Not signed in → /login (from any route)
+///   - Signed in on /login → /trips
 final router = GoRouter(
   initialLocation: '/trips',
+  refreshListenable: _AuthChangeNotifier(),
+  redirect: (context, state) {
+    final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+    final isOnLogin = state.matchedLocation == '/login';
+
+    if (!isLoggedIn && !isOnLogin) return '/login';
+    if (isLoggedIn && isOnLogin) return '/trips';
+    return null;
+  },
   routes: [
+    // -------------------------------------------------------------------------
+    // Login / splash (unauthenticated)
+    // -------------------------------------------------------------------------
+    GoRoute(
+      path: '/login',
+      builder: (context, state) => const LoginScreen(),
+    ),
+
     // -------------------------------------------------------------------------
     // Authenticated home: Mis viajes (F1.1)
     // -------------------------------------------------------------------------

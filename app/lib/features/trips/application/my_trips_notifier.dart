@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
+import 'package:vamos/features/auth/application/auth_notifier.dart';
 import 'package:vamos/features/trips/domain/trip_status.dart';
 
 // ---------------------------------------------------------------------------
@@ -9,8 +10,11 @@ import 'package:vamos/features/trips/domain/trip_status.dart';
 
 /// Provides the current user's ID.
 ///
-/// Default is an empty string (not authenticated). Override in tests or the
-/// dev entry point to inject a fake user ID without Firebase:
+/// Derived from [authStateProvider] so it automatically updates when the
+/// user signs in or out. Returns an empty string when not authenticated.
+///
+/// Override in tests or the dev entry point to inject a fake user ID without
+/// Firebase:
 ///
 /// ```dart
 /// ProviderScope(
@@ -21,11 +25,9 @@ import 'package:vamos/features/trips/domain/trip_status.dart';
 ///   child: MyApp(),
 /// )
 /// ```
-///
-/// TODO(E0-06): replace the default implementation with the real auth provider
-/// once Firebase Auth is wired:
-///   `ref.watch(authStateProvider).value?.uid ?? ''`
-final currentUserIdProvider = Provider<String>((ref) => '');
+final currentUserIdProvider = Provider<String>((ref) {
+  return ref.watch(authStateProvider).value?.uid ?? '';
+});
 
 // ---------------------------------------------------------------------------
 // Notifier
