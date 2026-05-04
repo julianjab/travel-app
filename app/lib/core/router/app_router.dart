@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vamos/data/models/itinerary_item.dart';
+import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/auth/application/auth_notifier.dart';
 import 'package:vamos/features/auth/presentation/login_screen.dart';
+import 'package:vamos/features/itinerary/presentation/create_item_screen.dart';
+import 'package:vamos/features/itinerary/presentation/edit_item_screen.dart';
+import 'package:vamos/features/itinerary/presentation/item_detail_screen.dart';
 import 'package:vamos/features/trips/presentation/create_trip_screen.dart';
 import 'package:vamos/features/trips/presentation/invite_screen.dart';
 import 'package:vamos/features/trips/presentation/join_alias_screen.dart';
@@ -94,6 +99,43 @@ final routerProvider = Provider<GoRouter>((ref) {
                   final tripId = state.pathParameters['id']!;
                   return InviteScreen(tripId: tripId);
                 },
+              ),
+              // F2 — Itinerary: create item
+              GoRoute(
+                path: 'items/new',
+                builder: (context, state) {
+                  final tripId = state.pathParameters['id']!;
+                  final trip = state.extra as Trip;
+                  return CreateItemScreen(tripId: tripId, trip: trip);
+                },
+              ),
+              // F2 — Itinerary: item detail (with voting, confirm, delete, move)
+              GoRoute(
+                path: 'items/:itemId',
+                builder: (context, state) {
+                  final tripId = state.pathParameters['id']!;
+                  final extra = state.extra as Map<String, dynamic>;
+                  return ItemDetailScreen(
+                    tripId: tripId,
+                    item: extra['item'] as ItineraryItem,
+                    trip: extra['trip'] as Trip,
+                  );
+                },
+                routes: [
+                  // F2 — Itinerary: edit item
+                  GoRoute(
+                    path: 'edit',
+                    builder: (context, state) {
+                      final tripId = state.pathParameters['id']!;
+                      final extra = state.extra as Map<String, dynamic>;
+                      return EditItemScreen(
+                        tripId: tripId,
+                        item: extra['item'] as ItineraryItem,
+                        trip: extra['trip'] as Trip,
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),
