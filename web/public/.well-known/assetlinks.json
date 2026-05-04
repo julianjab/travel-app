@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.jabsolutions.vamos",
+      "sha256_cert_fingerprints": [
+        "D7:D7:3B:07:D8:9C:43:CC:23:41:5F:FC:62:1C:1E:35:1B:72:E0:12:04:13:D3:82:FD:45:44:50:C0:E8:4E:E5"
+      ]
+    }
+  }
+]
