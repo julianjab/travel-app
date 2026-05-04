@@ -7,8 +7,6 @@ import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/data/repositories/firestore_invite_repository.dart';
 import 'package:vamos/data/repositories/firestore_user_repository.dart';
-import 'package:vamos/data/repositories/invite_repository.dart';
-import 'package:vamos/data/repositories/user_repository.dart';
 
 // ---------------------------------------------------------------------------
 // Async provider: resolves invite + user profile status in one shot

@@ -93,7 +93,7 @@ class _JoinAliasScreenState extends ConsumerState<JoinAliasScreen> {
             // Trip preview card
             tripAsync.when(
               loading: () => _TripCardSkeleton(),
-              error: (_, __) => _TripCardError(),
+              error: (e, _) => _TripCardError(),
               data: (trip) =>
                   trip == null ? _TripCardError() : _TripCard(trip: trip),
             ),
