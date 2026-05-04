@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+# Invite pages are private — don't index invite codes
+Disallow: /j/
+
+Sitemap: https://vamos.app/sitemap-index.xml
