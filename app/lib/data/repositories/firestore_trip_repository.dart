@@ -21,10 +21,6 @@ class FirestoreTripRepository implements TripRepository {
       _firestore.collection('trips');
 
   // ---------------------------------------------------------------------------
-  // Read
-  // ---------------------------------------------------------------------------
-
-  // ---------------------------------------------------------------------------
   // Write
   // ---------------------------------------------------------------------------
 
@@ -64,6 +60,17 @@ class FirestoreTripRepository implements TripRepository {
   // ---------------------------------------------------------------------------
   // Read
   // ---------------------------------------------------------------------------
+
+  /// Streams the single trip document at `trips/{tripId}`.
+  ///
+  /// Emits null if the document does not exist (e.g., was deleted).
+  @override
+  Stream<Trip?> watchById(String tripId) {
+    return _trips.doc(tripId).snapshots().map((snap) {
+      if (!snap.exists) return null;
+      return Trip.fromFirestore(snap);
+    });
+  }
 
   /// Streams all active trips the [userId] belongs to, ordered by [startDate].
   ///

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vamos/features/auth/presentation/login_screen.dart';
 import 'package:vamos/features/trips/presentation/create_trip_screen.dart';
+import 'package:vamos/features/trips/presentation/invite_screen.dart';
 import 'package:vamos/features/trips/presentation/my_trips_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -39,10 +40,11 @@ class _AuthChangeNotifier extends ChangeNotifier {
 /// Application router.
 ///
 /// Routes:
-///   /login          → [LoginScreen]       (unauthenticated)
-///   /trips          → [MyTripsScreen]     (authenticated home, F1.1)
-///   /trips/new      → [CreateTripScreen]  (create trip form, F1.2)
-///   /trips/:id      → stub for F2.1
+///   /login                    → [LoginScreen]    (unauthenticated)
+///   /trips                    → [MyTripsScreen]  (authenticated home, F1.1)
+///   /trips/new                → [CreateTripScreen] (create trip form, F1.2)
+///   /trips/:id/invite         → [InviteScreen]   (success + share link, F1.3)
+///   /trips/:id                → stub for F2.1
 ///
 /// Redirect logic:
 ///   - Not signed in → /login (from any route)
@@ -86,6 +88,16 @@ final router = GoRouter(
             final tripId = state.pathParameters['id']!;
             return _StubScreen(title: 'Viaje $tripId');
           },
+          routes: [
+            // F1.3 — Success + invite-link screen.
+            GoRoute(
+              path: 'invite',
+              builder: (context, state) {
+                final tripId = state.pathParameters['id']!;
+                return InviteScreen(tripId: tripId);
+              },
+            ),
+          ],
         ),
       ],
     ),
