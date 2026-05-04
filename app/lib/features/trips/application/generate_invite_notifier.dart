@@ -36,6 +36,30 @@ class GenerateInviteNotifier
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => _generate(arg));
   }
+
+  /// Revokes the current active invite and generates a fresh code (F1-08).
+  ///
+  /// Sets [state] to [AsyncLoading] while the batch write is in flight, then
+  /// updates to [AsyncData] with the new code (or [AsyncError] on failure).
+  /// The UI picks up the new code automatically via the state update.
+  Future<void> regenerate() async {
+    final userId = ref.read(currentUserIdProvider);
+    if (userId.isEmpty) {
+      state = AsyncError(
+        StateError('No hay un usuario autenticado.'),
+        StackTrace.current,
+      );
+      return;
+    }
+
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final newCode = await ref
+          .read(inviteRepositoryProvider)
+          .revokeAndRegenerate(arg, userId);
+      return newCode;
+    });
+  }
 }
 
 /// Riverpod provider for [GenerateInviteNotifier].

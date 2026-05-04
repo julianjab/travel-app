@@ -65,6 +65,43 @@ class FirestoreInviteRepository implements InviteRepository {
   // ---------------------------------------------------------------------------
 
   @override
+  Future<String> revokeAndRegenerate(String tripId, String createdBy) async {
+    // Find the current active invite for this trip.
+    final activeSnap = await _invites
+        .where('tripId', isEqualTo: tripId)
+        .where('active', isEqualTo: true)
+        .limit(1)
+        .get();
+
+    if (activeSnap.docs.isEmpty) {
+      throw StateError(
+        'No se encontró un link activo para el viaje $tripId.',
+      );
+    }
+
+    final existingDoc = activeSnap.docs.first;
+    final newCode = _generateCode();
+    final newDocRef = _invites.doc(newCode);
+
+    final newInvite = Invite(
+      code: newCode,
+      tripId: tripId,
+      createdBy: createdBy,
+      createdAt: DateTime.now(),
+      active: true,
+    );
+
+    final batch = _firestore.batch();
+    // Revoke the existing invite.
+    batch.update(existingDoc.reference, {'active': false});
+    // Write the new invite.
+    batch.set(newDocRef, newInvite.toFirestore());
+
+    await batch.commit();
+    return newCode;
+  }
+
+  @override
   Future<String> create(String tripId, String createdBy) async {
     const maxRetries = 3;
 

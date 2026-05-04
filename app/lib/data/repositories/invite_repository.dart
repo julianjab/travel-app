@@ -16,4 +16,15 @@ abstract class InviteRepository {
   /// Used by [JoinEntryScreen] to resolve the invite code from the deep link
   /// into the Firestore trip ID before starting the onboarding flow.
   Future<String?> getTripId(String code);
+
+  /// Revokes the current active invite for [tripId] and generates a new one.
+  ///
+  /// In a single [WriteBatch]:
+  ///   1. Finds the active invite document for [tripId].
+  ///   2. Sets `active: false` on that document.
+  ///   3. Writes a new invite document with a fresh 6-char code.
+  ///
+  /// Returns the newly generated invite code.
+  /// Throws [StateError] if no active invite is found for [tripId].
+  Future<String> revokeAndRegenerate(String tripId, String createdBy);
 }
