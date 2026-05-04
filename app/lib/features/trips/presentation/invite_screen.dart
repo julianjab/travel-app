@@ -11,6 +11,7 @@ import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/features/trips/application/generate_invite_notifier.dart';
+import 'package:vamos/features/trips/application/my_trips_notifier.dart';
 
 /// F1.3 — "Tu viaje está listo" — invite-link screen.
 ///
@@ -71,7 +72,7 @@ class InviteScreen extends ConsumerWidget {
 // Main content — rendered once the trip is loaded
 // ---------------------------------------------------------------------------
 
-class _Content extends StatelessWidget {
+class _Content extends ConsumerWidget {
   const _Content({
     required this.tripId,
     required this.trip,
@@ -85,7 +86,26 @@ class _Content extends StatelessWidget {
   final VoidCallback onRetryInvite;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUserId = ref.watch(currentUserIdProvider);
+    final isFacilitator = currentUserId == trip.createdBy;
+
+    // Listen for regenerate errors and surface them as a SnackBar.
+    ref.listen<AsyncValue<String?>>(generateInviteProvider(tripId), (_, next) {
+      next.whenOrNull(
+        error: (err, _) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Error al regenerar. Intentá de nuevo.'),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+        },
+      );
+    });
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
         horizontal: VamosSpacing.md,
@@ -163,6 +183,16 @@ class _Content extends StatelessWidget {
           }).value ??
               const SizedBox.shrink(),
 
+          // ── Regenerate link button (facilitator only) — F1-08 ────────────
+          if (isFacilitator) ...[
+            const SizedBox(height: VamosSpacing.sm),
+            _RegenerateButton(
+              tripId: tripId,
+              isLoading: inviteAsync.isLoading,
+              onRegenerate: () => _confirmRegenerate(context, ref),
+            ),
+          ],
+
           const SizedBox(height: VamosSpacing.xxl),
 
           // ── Primary CTA ───────────────────────────────────────────────────
@@ -179,6 +209,42 @@ class _Content extends StatelessWidget {
 
   String _formatDateRange(DateTime start, DateTime end) =>
       formatDateRange(start, end);
+
+  /// Shows a confirm dialog before revoking the invite link.
+  Future<void> _confirmRegenerate(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: VamosRadius.brDialog),
+        title: const Text('Regenerar link'),
+        content: const Text(
+          '¿Querés invalidar el link actual y crear uno nuevo?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Sí, regenerar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(generateInviteProvider(tripId).notifier).regenerate();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Link regenerado'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -384,6 +450,39 @@ class _NativeShareButton extends StatelessWidget {
   Future<void> _shareNative(String code) async {
     final link = 'https://vamos.app/j/$code';
     await Share.share('Sumate al viaje en Vamos: $link');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Regenerate link button — F1-08, facilitator only
+// ---------------------------------------------------------------------------
+
+/// An outlined button that lets the facilitator revoke the current invite
+/// link and generate a new one. Disabled while the notifier is loading.
+class _RegenerateButton extends StatelessWidget {
+  const _RegenerateButton({
+    required this.tripId,
+    required this.isLoading,
+    required this.onRegenerate,
+  });
+
+  final String tripId;
+  final bool isLoading;
+  final VoidCallback onRegenerate;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: isLoading ? null : onRegenerate,
+      icon: isLoading
+          ? const SizedBox(
+              width: VamosSpacing.md,
+              height: VamosSpacing.md,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.refresh_outlined),
+      label: const Text('Regenerar link'),
+    );
   }
 }
 
