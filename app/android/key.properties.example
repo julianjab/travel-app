@@ -1,0 +1,4 @@
+storeFile=<path_to_keystore.jks>
+storePassword=<keystore_password>
+keyAlias=vamos
+keyPassword=<key_password>
