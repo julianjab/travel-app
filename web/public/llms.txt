@@ -1,0 +1,42 @@
+# Vamos
+
+> App para planear y ejecutar viajes en grupo, diseñada para LATAM.
+
+## Qué es Vamos
+
+Vamos es una aplicación móvil (iOS y Android) que centraliza la planificación de viajes grupales. Reemplaza la coordinación fragmentada entre WhatsApp, Google Docs y Splitwise con una sola herramienta diseñada para grupos latinoamericanos.
+
+## Problema que resuelve
+
+Los viajes en grupo generan conflictos por:
+- Falta de visibilidad compartida del itinerario
+- Gastos sin registro que generan deudas opacas
+- Decisiones sin consenso claro (dónde comer, qué hacer)
+- Un solo "mártir del viaje" que carga con toda la organización
+
+Vamos distribuye la carga, da visibilidad compartida y previene los conflictos antes de que ocurran.
+
+## Audiencia
+
+Grupos de amigos o familia en Latinoamérica (Colombia, México, Argentina, Chile, Perú) que planean viajes de varios días juntos.
+
+## Características principales
+
+- **Itinerario colaborativo**: propuestas votables por todos los miembros
+- **Gastos compartidos**: registro en múltiples monedas con cálculo de saldos
+- **Invitación por WhatsApp**: link único para que todos entren sin registro previo
+- **Roles**: un facilitador por viaje, todos los demás son miembros iguales
+
+## Estado actual
+
+MVP en validación (Caso 0). Fase no comercial enfocada en validar el flujo end-to-end con un grupo real.
+
+## Web
+
+- Landing: https://vamos.app
+- Invitaciones: https://vamos.app/j/{código} (privado, no indexado)
+
+## Plataformas
+
+- iOS: App Store (próximamente)
+- Android: Google Play (próximamente)

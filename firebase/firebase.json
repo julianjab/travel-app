@@ -7,13 +7,19 @@
     "rules": "storage.rules"
   },
   "hosting": {
-    "public": "../web/dist",
+    "public": "hosting-dist",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
     "cleanUrls": true,
-    "trailingSlash": false
+    "trailingSlash": false,
+    "rewrites": [
+      {
+        "source": "/j/**",
+        "destination": "/j/index.html"
+      }
+    ]
   }
 }
