@@ -18,14 +18,35 @@
 // is small-scale: the script is here to make the migration repeatable rather
 // than to scale.
 
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import admin from "firebase-admin";
 
 const dryRun = process.argv.includes("--dry-run");
 
+// Resolve the project ID from .firebaserc (single source of truth).
+// Allow GOOGLE_CLOUD_PROJECT to override for one-off runs against a different env.
+const here = dirname(fileURLToPath(import.meta.url));
+const firebaserc = JSON.parse(
+  readFileSync(resolve(here, "..", ".firebaserc"), "utf8"),
+);
+const projectId =
+  process.env.GOOGLE_CLOUD_PROJECT ?? firebaserc.projects?.default;
+if (!projectId) {
+  console.error(
+    "No project id. Set GOOGLE_CLOUD_PROJECT or add a default in firebase/.firebaserc.",
+  );
+  process.exit(1);
+}
+
 admin.initializeApp({
   // Uses ADC from GOOGLE_APPLICATION_CREDENTIALS or the gcloud login.
   credential: admin.credential.applicationDefault(),
+  projectId,
 });
+
+console.log(`Targeting project: ${projectId} (dryRun=${dryRun})`);
 
 const db = admin.firestore();
 

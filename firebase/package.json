@@ -1,0 +1,13 @@
+{
+  "name": "vamos-firebase-scripts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "One-off admin scripts for the Vamos Firestore project (migrations, backfills). Not part of the runtime stack.",
+  "scripts": {
+    "migrate:member-aliases": "node scripts/migrate_member_aliases.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}
