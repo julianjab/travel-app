@@ -63,4 +63,27 @@ class MockTripRepository implements TripRepository {
   /// Tests that need to verify archive behavior should override this method.
   @override
   Future<void> archiveTrip(String tripId) async {}
+
+  /// Adds a member to the in-memory trip — extends both [Trip.memberIds] and
+  /// [Trip.memberAliases].
+  ///
+  /// Tests that need to assert the invariant or simulate join flows should
+  /// rely on this; the default implementation is sufficient for screen tests
+  /// that do not touch member rosters.
+  @override
+  Future<void> addMember({
+    required String tripId,
+    required String userId,
+    required String alias,
+    Map<String, dynamic> tags = const {},
+  }) async {
+    final idx = _trips.indexWhere((t) => t.id == tripId);
+    if (idx == -1) return;
+    final t = _trips[idx];
+    if (t.memberIds.contains(userId)) return;
+    _trips[idx] = t.copyWith(
+      memberIds: [...t.memberIds, userId],
+      memberAliases: {...t.memberAliases, userId: alias},
+    );
+  }
 }
