@@ -226,7 +226,10 @@ class _BottomRow extends StatelessWidget {
     final isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
     return Row(
       children: [
-        _MemberPills(memberIds: trip.memberIds),
+        _MemberPills(
+          memberIds: trip.memberIds,
+          memberAliases: trip.memberAliases,
+        ),
         const Spacer(),
         Text(
           _dateRange(),
@@ -260,9 +263,16 @@ class _BottomRow extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _MemberPills extends StatelessWidget {
-  const _MemberPills({required this.memberIds});
+  const _MemberPills({
+    required this.memberIds,
+    required this.memberAliases,
+  });
 
   final List<String> memberIds;
+
+  /// Denormalized lookup `userId -> alias` from the trip doc (X-11). Used to
+  /// paint the initial inside each circle. May be empty for legacy trips.
+  final Map<String, String> memberAliases;
 
   static const _maxVisible = 4;
   static const _size = 28.0;
@@ -281,6 +291,17 @@ class _MemberPills extends StatelessWidget {
       0.45,
       0.48,
     ).toColor();
+  }
+
+  /// First non-whitespace letter of the alias, uppercased. Falls back to the
+  /// first character of the uid for legacy trips without a denormalized
+  /// alias.
+  String _initial(String uid) {
+    final alias = memberAliases[uid];
+    final source = (alias != null && alias.trim().isNotEmpty) ? alias.trim() : uid;
+    return source.runes.isEmpty
+        ? '?'
+        : String.fromCharCode(source.runes.first).toUpperCase();
   }
 
   @override
@@ -312,10 +333,18 @@ class _MemberPills extends StatelessWidget {
               child: Container(
                 width: _size,
                 height: _size,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: _colorFromId(e.value),
                   shape: BoxShape.circle,
                   border: Border.all(color: circleBorder, width: 2),
+                ),
+                child: Text(
+                  _initial(e.value),
+                  style: VamosTypography.caption.copyWith(
+                    color: VamosColors.textOnDark,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
