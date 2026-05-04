@@ -69,7 +69,7 @@ class EditExpenseScreen extends ConsumerWidget {
             createdBy: expense.createdBy, // preserve original
             editHistory: [...expense.editHistory, historyEntry],
           );
-          ref.read(expenseActionsProvider.notifier).update(
+          ref.read(expenseActionsProvider.notifier).save(
                 tripId: tripId,
                 expense: withHistory,
               );

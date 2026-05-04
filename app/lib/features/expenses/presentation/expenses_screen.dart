@@ -108,7 +108,7 @@ class _ExpensesList extends StatelessWidget {
         ),
         SliverList.separated(
           itemCount: expenses.length,
-          separatorBuilder: (_, __) => const SizedBox(height: VamosSpacing.xs),
+          separatorBuilder: (context, index) => const SizedBox(height: VamosSpacing.xs),
           itemBuilder: (context, index) {
             final expense = expenses[index];
             return _ExpenseCard(expense: expense, trip: trip);

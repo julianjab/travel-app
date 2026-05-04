@@ -28,7 +28,7 @@ class ExpenseActionsNotifier extends AutoDisposeAsyncNotifier<void> {
   }
 
   /// Updates an existing expense. Caller must guard [Expense.hasSettlements].
-  Future<void> update({
+  Future<void> save({
     required String tripId,
     required Expense expense,
   }) async {

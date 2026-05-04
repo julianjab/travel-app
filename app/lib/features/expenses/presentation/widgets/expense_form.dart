@@ -322,7 +322,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
                 decoration: _inputDecoration(
                   '1.0',
                   helper:
-                      '1 ${_currency} = ? ${widget.trip.mainCurrency}',
+                      '1 $_currency = ? ${widget.trip.mainCurrency}',
                 ),
                 style: VamosTypography.monoMedium,
                 keyboardType: const TextInputType.numberWithOptions(
