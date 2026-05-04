@@ -37,4 +37,15 @@ class MockTripRepository implements TripRepository {
   Stream<List<Trip>> watchUserTrips(String userId) {
     return Stream.value(List<Trip>.from(_trips));
   }
+
+  /// Creates a trip in the in-memory store and returns a fake generated ID.
+  ///
+  /// The [trip] is stored with a fixed fake ID "mock-trip-id" for simplicity.
+  /// Override this method if tests need a specific ID or multiple creates.
+  @override
+  Future<String> create(Trip trip, String facilitatorAlias) async {
+    const fakeId = 'mock-trip-id';
+    _trips.add(trip.copyWith(id: fakeId));
+    return fakeId;
+  }
 }

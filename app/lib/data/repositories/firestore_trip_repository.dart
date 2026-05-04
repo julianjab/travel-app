@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vamos/data/firebase/firebase_providers.dart';
+import 'package:vamos/data/models/member.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/data/repositories/trip_repository.dart';
 
@@ -18,6 +19,47 @@ class FirestoreTripRepository implements TripRepository {
 
   CollectionReference<Map<String, dynamic>> get _trips =>
       _firestore.collection('trips');
+
+  // ---------------------------------------------------------------------------
+  // Read
+  // ---------------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------------
+  // Write
+  // ---------------------------------------------------------------------------
+
+  /// Creates a new trip and registers the facilitator as the first member.
+  ///
+  /// Uses a [WriteBatch] to atomically write both documents:
+  ///   - `trips/{tripId}` with the serialized [trip]
+  ///   - `trips/{tripId}/members/{facilitatorId}` with the facilitator member
+  ///
+  /// The [memberIds] array inside the trip doc MUST include the facilitator's
+  /// uid so [watchUserTrips] (which filters by `array-contains userId`) picks
+  /// up the trip immediately.
+  ///
+  /// Returns the generated [tripId] on success.
+  @override
+  Future<String> create(Trip trip, String facilitatorAlias) async {
+    final tripRef = _trips.doc(); // auto-generated ID
+
+    final facilitatorMember = Member(
+      userId: trip.facilitatorId,
+      alias: facilitatorAlias,
+      tags: const {},
+      joinedAt: trip.createdAt,
+    );
+
+    final batch = _firestore.batch();
+    batch.set(tripRef, trip.toFirestore());
+    batch.set(
+      tripRef.collection('members').doc(trip.facilitatorId),
+      facilitatorMember.toFirestore(),
+    );
+
+    await batch.commit();
+    return tripRef.id;
+  }
 
   // ---------------------------------------------------------------------------
   // Read
