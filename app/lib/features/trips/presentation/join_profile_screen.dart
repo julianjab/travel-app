@@ -19,18 +19,28 @@ class JoinProfileScreen extends ConsumerStatefulWidget {
     super.key,
     required this.inviteCode,
     required this.tripId,
+    this.defaultName = '',
   });
 
   final String inviteCode;
   final String tripId;
+
+  /// Pre-filled display name from Firebase Auth (may be empty for brand-new accounts).
+  final String defaultName;
 
   @override
   ConsumerState<JoinProfileScreen> createState() => _JoinProfileScreenState();
 }
 
 class _JoinProfileScreenState extends ConsumerState<JoinProfileScreen> {
-  final _nameController = TextEditingController();
+  late final TextEditingController _nameController;
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.defaultName);
+  }
 
   @override
   void dispose() {
@@ -47,7 +57,11 @@ class _JoinProfileScreenState extends ConsumerState<JoinProfileScreen> {
 
     context.push(
       '/join/${widget.inviteCode}/alias',
-      extra: {'tripId': widget.tripId, 'isNewUser': true},
+      extra: <String, dynamic>{
+        'tripId': widget.tripId,
+        'isNewUser': true,
+        'defaultName': _nameController.text.trim(),
+      },
     );
   }
 

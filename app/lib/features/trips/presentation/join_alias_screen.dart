@@ -64,7 +64,7 @@ class _JoinAliasScreenState extends ConsumerState<JoinAliasScreen> {
 
     context.push(
       '/join/${widget.inviteCode}/tags',
-      extra: {
+      extra: <String, dynamic>{
         'tripId': widget.tripId,
         'isNewUser': widget.isNewUser,
       },

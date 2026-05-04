@@ -4,6 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:vamos/features/auth/presentation/login_screen.dart';
 import 'package:vamos/features/trips/presentation/create_trip_screen.dart';
 import 'package:vamos/features/trips/presentation/invite_screen.dart';
+import 'package:vamos/features/trips/presentation/join_alias_screen.dart';
+import 'package:vamos/features/trips/presentation/join_entry_screen.dart';
+import 'package:vamos/features/trips/presentation/join_profile_screen.dart';
+import 'package:vamos/features/trips/presentation/join_tags_screen.dart';
 import 'package:vamos/features/trips/presentation/my_trips_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -86,20 +90,72 @@ final router = GoRouter(
     ),
 
     // -------------------------------------------------------------------------
-    // Deep link entry: join a trip via invite code (F1.5 / F1.6)
+    // Deep link entry: join a trip via invite code (F1.4 / F1.4b / F1.5)
     //
     // Receives the invite code from:
     //   - Universal Link:  https://vamos.app/j/{code}  → /join/{code}
     //   - Custom scheme:   vamos://join/{code}          → /join/{code}
     //
-    // TODO(F1-06): replace _StubScreen with JoinScreen once F1-06 is built.
+    // /join/:code          → JoinEntryScreen (resolves invite → profile check)
+    // /join/:code/profile  → JoinProfileScreen (F1.4, new users only)
+    // /join/:code/alias    → JoinAliasScreen   (F1.4b, all users)
+    // /join/:code/tags     → JoinTagsScreen    (F1.5, all users)
     // -------------------------------------------------------------------------
     GoRoute(
       path: '/join/:code',
       builder: (context, state) {
         final code = state.pathParameters['code']!;
-        return _StubScreen(title: 'Unirse · $code');
+        return JoinEntryScreen(inviteCode: code);
       },
+      routes: [
+        // F1.4 — Profile setup (new users only)
+        GoRoute(
+          path: 'profile',
+          builder: (context, state) {
+            final code = state.pathParameters['code']!;
+            final extra = state.extra as Map<String, dynamic>? ?? {};
+            final tripId = extra['tripId'] as String? ?? '';
+            final defaultName = extra['defaultName'] as String? ?? '';
+            return JoinProfileScreen(
+              inviteCode: code,
+              tripId: tripId,
+              defaultName: defaultName,
+            );
+          },
+        ),
+        // F1.4b — Alias selection (all users)
+        GoRoute(
+          path: 'alias',
+          builder: (context, state) {
+            final code = state.pathParameters['code']!;
+            final extra = state.extra as Map<String, dynamic>? ?? {};
+            final tripId = extra['tripId'] as String? ?? '';
+            final isNewUser = extra['isNewUser'] as bool? ?? false;
+            final defaultName = extra['defaultName'] as String? ?? '';
+            return JoinAliasScreen(
+              inviteCode: code,
+              tripId: tripId,
+              isNewUser: isNewUser,
+              defaultName: defaultName,
+            );
+          },
+        ),
+        // F1.5 — Preference tags (all users)
+        GoRoute(
+          path: 'tags',
+          builder: (context, state) {
+            final code = state.pathParameters['code']!;
+            final extra = state.extra as Map<String, dynamic>? ?? {};
+            final tripId = extra['tripId'] as String? ?? '';
+            final isNewUser = extra['isNewUser'] as bool? ?? false;
+            return JoinTagsScreen(
+              inviteCode: code,
+              tripId: tripId,
+              isNewUser: isNewUser,
+            );
+          },
+        ),
+      ],
     ),
 
     // -------------------------------------------------------------------------
