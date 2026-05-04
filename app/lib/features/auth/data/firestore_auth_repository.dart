@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:vamos/core/utils/logger.dart';
 import 'package:vamos/data/firebase/firebase_providers.dart';
 import 'auth_repository.dart';
 
@@ -42,6 +43,7 @@ class FirebaseAuthRepository implements AuthRepository {
       idToken: googleAuth.idToken,
     );
 
+    log.i('Google Sign-In: credential obtained for ${googleUser.email}');
     return _auth.signInWithCredential(credential);
   }
 
@@ -61,11 +63,13 @@ class FirebaseAuthRepository implements AuthRepository {
       accessToken: appleCredential.authorizationCode,
     );
 
+    log.i('Apple Sign-In: credential obtained');
     return _auth.signInWithCredential(oauthCredential);
   }
 
   @override
   Future<void> signOut() async {
+    log.i('Signing out');
     await GoogleSignIn().signOut();
     await _auth.signOut();
   }
