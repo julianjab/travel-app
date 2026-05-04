@@ -8,6 +8,7 @@ import 'package:vamos/data/models/member.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/features/members/application/members_notifier.dart';
 import 'package:vamos/features/trips/application/my_trips_notifier.dart';
+import 'package:vamos/shared/widgets/error_state.dart';
 import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 // ---------------------------------------------------------------------------
@@ -51,7 +52,14 @@ class MembersScreen extends ConsumerWidget {
 
     return membersAsync.when(
       loading: () => const VamosLoadingIndicator(),
-      error: (error, _) => _ErrorState(error: error.toString()),
+      error: (error, st) => VamosErrorState(
+        title: 'No se pudo cargar la lista.',
+        message: 'Revisá tu conexión e intentá de nuevo.',
+        error: error,
+        stackTrace: st,
+        debugLabel: 'MembersScreen',
+        onRetry: () => ref.invalidate(membersProvider(tripId)),
+      ),
       data: (members) {
         // Determine if the current user is the facilitator. We need the trip
         // doc for the facilitatorId — fall back to false while loading.
@@ -390,41 +398,3 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Error state
-// ---------------------------------------------------------------------------
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.error});
-
-  final String error;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(VamosSpacing.xl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: VamosColors.red,
-            size: VamosSpacing.xxxl,
-          ),
-          const SizedBox(height: VamosSpacing.md),
-          Text(
-            'No se pudo cargar la lista.',
-            style: VamosTypography.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: VamosSpacing.sm),
-          Text(
-            'Revisá tu conexión e intentá de nuevo.',
-            style: VamosTypography.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}

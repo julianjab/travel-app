@@ -9,6 +9,7 @@ import 'package:vamos/data/models/expense.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/expenses/application/expenses_notifier.dart';
 import 'package:vamos/shared/widgets/empty_state.dart';
+import 'package:vamos/shared/widgets/error_state.dart';
 import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 /// F3-02 — Expenses list screen.
@@ -36,7 +37,14 @@ class ExpensesScreen extends ConsumerWidget {
       // as a floating text button at the top for simplicity within the tab.
       body: expensesAsync.when(
         loading: () => const VamosLoadingIndicator(),
-        error: (err, _) => _ErrorState(onRetry: () => ref.invalidate(expensesProvider(tripId))),
+        error: (err, st) => VamosErrorState(
+          title: 'No se pudieron cargar los gastos.',
+          message: 'Verificá tu conexión e intentá de nuevo.',
+          error: err,
+          stackTrace: st,
+          debugLabel: 'ExpensesScreen',
+          onRetry: () => ref.invalidate(expensesProvider(tripId)),
+        ),
         data: (expenses) => expenses.isEmpty
             ? VamosEmptyState(
                 icon: Icons.receipt_long_outlined,
@@ -211,49 +219,3 @@ class _ExpenseCard extends StatelessWidget {
 // Error state
 // ---------------------------------------------------------------------------
 
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry});
-
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(VamosSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: VamosSpacing.xxl,
-              color: VamosColors.red,
-            ),
-            const SizedBox(height: VamosSpacing.md),
-            Text(
-              'No se pudieron cargar los gastos.',
-              style: VamosTypography.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: VamosSpacing.sm),
-            Text(
-              'Verificá tu conexión e intentá de nuevo.',
-              style: VamosTypography.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: VamosSpacing.lg),
-            OutlinedButton(
-              onPressed: onRetry,
-              style: OutlinedButton.styleFrom(
-                shape: const RoundedRectangleBorder(
-                  borderRadius: VamosRadius.brFull,
-                ),
-              ),
-              child: const Text('Intentá de nuevo'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

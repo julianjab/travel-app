@@ -10,6 +10,7 @@ import 'package:vamos/features/expenses/application/expense_actions_notifier.dar
 import 'package:vamos/features/expenses/application/expenses_notifier.dart';
 import 'package:vamos/features/expenses/domain/balance_calculator.dart';
 import 'package:vamos/features/trips/application/my_trips_notifier.dart';
+import 'package:vamos/shared/widgets/error_state.dart';
 import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 /// F3-10/F3-11 — Balances screen.
@@ -50,7 +51,12 @@ class BalancesScreen extends ConsumerWidget {
       ),
       body: expensesAsync.when(
         loading: () => const VamosLoadingIndicator(),
-        error: (err, _) => _ErrorState(
+        error: (err, st) => VamosErrorState(
+          title: 'No se pudieron cargar los saldos.',
+          message: 'Verificá tu conexión e intentá de nuevo.',
+          error: err,
+          stackTrace: st,
+          debugLabel: 'BalancesScreen',
           onRetry: () => ref.invalidate(expensesProvider(tripId)),
         ),
         data: (expenses) => _BalancesBody(
@@ -347,48 +353,3 @@ class _TransferRow extends StatelessWidget {
 // Error state
 // ---------------------------------------------------------------------------
 
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry});
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(VamosSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: VamosSpacing.xxl,
-              color: VamosColors.red,
-            ),
-            const SizedBox(height: VamosSpacing.md),
-            Text(
-              'No se pudieron cargar los saldos.',
-              style: VamosTypography.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: VamosSpacing.sm),
-            Text(
-              'Verificá tu conexión e intentá de nuevo.',
-              style: VamosTypography.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: VamosSpacing.lg),
-            OutlinedButton(
-              onPressed: onRetry,
-              style: OutlinedButton.styleFrom(
-                shape: const RoundedRectangleBorder(
-                  borderRadius: VamosRadius.brFull,
-                ),
-              ),
-              child: const Text('Intentá de nuevo'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
