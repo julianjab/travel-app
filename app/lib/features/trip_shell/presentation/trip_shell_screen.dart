@@ -66,9 +66,13 @@ class _TripShellScreenState extends ConsumerState<TripShellScreen>
     final isFacilitator = trip?.facilitatorId == currentUserId;
 
     // Listen for archive success → navigate away; error → SnackBar.
-    ref.listen<AsyncValue<void>>(archiveTripProvider, (prev, next) {
+    // The state type is bool? — null means idle (initial build), true means
+    // archived. This guards against the false-positive trigger that happens
+    // when AsyncNotifier<void>.build() completes and the listener fires.
+    ref.listen<AsyncValue<bool?>>(archiveTripProvider, (prev, next) {
       next.whenOrNull(
-        data: (_) {
+        data: (archived) {
+          if (archived != true) return; // null = idle, skip
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Viaje archivado')),
