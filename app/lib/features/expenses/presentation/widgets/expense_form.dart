@@ -341,6 +341,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
             const SizedBox(height: VamosSpacing.xs),
             _MemberDropdown(
               memberIds: widget.trip.memberIds,
+              memberAliases: widget.trip.memberAliases,
               value: _paidBy,
               onChanged: (v) {
                 if (v != null) setState(() => _paidBy = v);
@@ -370,6 +371,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
             _SplitDetail(
               mode: _splitMode,
               memberIds: widget.trip.memberIds,
+              memberAliases: widget.trip.memberAliases,
               included: _included,
               memberCtrl: _memberCtrl,
               onIncludedChanged: (uid, v) =>
@@ -502,11 +504,13 @@ class _CurrencyDropdown extends StatelessWidget {
 class _MemberDropdown extends StatelessWidget {
   const _MemberDropdown({
     required this.memberIds,
+    required this.memberAliases,
     required this.value,
     required this.onChanged,
   });
 
   final List<String> memberIds;
+  final Map<String, String> memberAliases;
   final String value;
   final ValueChanged<String?> onChanged;
 
@@ -535,7 +539,7 @@ class _MemberDropdown extends StatelessWidget {
               (uid) => DropdownMenuItem(
                 value: uid,
                 child: Text(
-                  _shortenId(uid),
+                  _aliasFor(uid, memberAliases),
                   style: VamosTypography.bodyLarge,
                 ),
               ),
@@ -544,9 +548,15 @@ class _MemberDropdown extends StatelessWidget {
       ),
     );
   }
+}
 
-  String _shortenId(String uid) =>
-      uid.length > 12 ? uid.substring(0, 12) : uid;
+/// Returns the denormalized alias for [uid], falling back to a shortened uid
+/// for legacy trips without `memberAliases` (X-11). Keeps the form readable
+/// even when the trip doc was created before the migration.
+String _aliasFor(String uid, Map<String, String> aliases) {
+  final alias = aliases[uid];
+  if (alias != null && alias.trim().isNotEmpty) return alias.trim();
+  return uid.length > 12 ? uid.substring(0, 12) : uid;
 }
 
 // ---------------------------------------------------------------------------
@@ -655,6 +665,7 @@ class _SplitDetail extends StatelessWidget {
   const _SplitDetail({
     required this.mode,
     required this.memberIds,
+    required this.memberAliases,
     required this.included,
     required this.memberCtrl,
     required this.onIncludedChanged,
@@ -662,6 +673,7 @@ class _SplitDetail extends StatelessWidget {
 
   final _SplitMode mode;
   final List<String> memberIds;
+  final Map<String, String> memberAliases;
   final Map<String, bool> included;
   final Map<String, TextEditingController> memberCtrl;
   final void Function(String uid, bool value) onIncludedChanged;
@@ -684,10 +696,10 @@ class _SplitDetail extends StatelessWidget {
                   onChanged: (v) => onIncludedChanged(uid, v ?? false),
                 ),
               ),
-              // Member label
+              // Member label — uses denormalized alias (X-11), fallback to uid.
               Expanded(
                 child: Text(
-                  _shortenId(uid),
+                  _aliasFor(uid, memberAliases),
                   style: VamosTypography.bodyMedium,
                 ),
               ),
@@ -721,7 +733,4 @@ class _SplitDetail extends StatelessWidget {
       }).toList(),
     );
   }
-
-  String _shortenId(String uid) =>
-      uid.length > 16 ? uid.substring(0, 16) : uid;
 }
