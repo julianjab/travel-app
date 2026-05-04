@@ -11,18 +11,23 @@ import 'package:vamos/core/theme/vamos_typography.dart';
 /// Default currency is COP (Colombian Peso) per LATAM-first product principle
 /// (see docs/02-prd-inicial.md §3). The parent form overrides this default
 /// and listens for changes via [onChanged].
+///
+/// Uses [DropdownButton] (not DropdownButtonFormField) because the parent
+/// [CreateTripScreen] owns the selected value in its own state — this is a
+/// fully controlled widget.
 class CurrencyPickerField extends StatelessWidget {
   const CurrencyPickerField({
     super.key,
     required this.value,
-    required this.onChanged,
+    this.onChanged,
   });
 
   /// Currently selected ISO 4217 currency code (e.g. "COP").
   final String value;
 
   /// Called with the newly selected currency code when the user picks one.
-  final ValueChanged<String?> onChanged;
+  /// When null, the dropdown is effectively disabled.
+  final ValueChanged<String?>? onChanged;
 
   /// LATAM-focused currency list. Ordered by estimated user frequency.
   static const List<({String code, String label})> _currencies = [
@@ -44,27 +49,33 @@ class CurrencyPickerField extends StatelessWidget {
       children: [
         Text('Moneda principal', style: VamosTypography.bodyMedium),
         const SizedBox(height: VamosSpacing.xs),
-        DropdownButtonFormField<String>(
-          value: value,
-          onChanged: onChanged,
-          decoration: const InputDecoration(
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: VamosSpacing.md,
-              vertical: VamosSpacing.sm,
-            ),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: VamosSpacing.md,
+            vertical: VamosSpacing.xs,
           ),
-          style: VamosTypography.bodyLarge.copyWith(color: VamosColors.text),
-          dropdownColor: VamosColors.surface,
-          borderRadius: VamosRadius.brMd,
-          isExpanded: true,
-          items: _currencies
-              .map(
-                (c) => DropdownMenuItem(
-                  value: c.code,
-                  child: Text(c.label, style: VamosTypography.bodyLarge),
-                ),
-              )
-              .toList(),
+          decoration: BoxDecoration(
+            color: VamosColors.surface,
+            borderRadius: VamosRadius.brMd,
+            border: Border.all(color: VamosColors.border),
+          ),
+          child: DropdownButton<String>(
+            value: value,
+            onChanged: onChanged,
+            isExpanded: true,
+            underline: const SizedBox.shrink(), // hide the default underline
+            style: VamosTypography.bodyLarge.copyWith(color: VamosColors.text),
+            dropdownColor: VamosColors.surface,
+            borderRadius: VamosRadius.brMd,
+            items: _currencies
+                .map(
+                  (c) => DropdownMenuItem(
+                    value: c.code,
+                    child: Text(c.label, style: VamosTypography.bodyLarge),
+                  ),
+                )
+                .toList(),
+          ),
         ),
         const SizedBox(height: VamosSpacing.xs),
         Text(

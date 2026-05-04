@@ -53,6 +53,9 @@ dependencies:
   # Logging
   logger: ^2.5.0
 
+  # Date and number formatting (NOT internationalization — Spanish hardcoded)
+  intl: ^0.20.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
