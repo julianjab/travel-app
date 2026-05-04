@@ -13,4 +13,14 @@ abstract class TripRepository {
   ///
   /// Filters: `memberIds array-contains userId` AND `status == "active"`.
   Stream<List<Trip>> watchUserTrips(String userId);
+
+  /// Creates a new trip in Firestore and registers the creator as facilitator.
+  ///
+  /// Uses a [WriteBatch] to atomically write:
+  ///   - `trips/{tripId}` with the serialized [trip]
+  ///   - `trips/{tripId}/members/{facilitatorId}` with the facilitator member doc
+  ///
+  /// The [facilitatorAlias] is used as the member alias for the facilitator.
+  /// Returns the generated [tripId] on success.
+  Future<String> create(Trip trip, String facilitatorAlias);
 }
