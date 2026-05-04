@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
+import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
+import 'package:vamos/features/itinerary/presentation/itinerary_screen.dart';
 import 'package:vamos/features/members/presentation/members_screen.dart';
 
 // ---------------------------------------------------------------------------
-// Trip name stream provider (family) — scoped to this file
+// Trip stream provider (family) — scoped to this file
 // ---------------------------------------------------------------------------
 
-final _tripNameProvider =
-    StreamProvider.autoDispose.family<String, String>((ref, tripId) {
-  return ref
-      .watch(tripRepositoryProvider)
-      .watchById(tripId)
-      .map((trip) => trip?.name ?? '');
+/// Streams the full [Trip] object for use in the shell and its child tabs.
+final _tripProvider =
+    StreamProvider.autoDispose.family<Trip?, String>((ref, tripId) {
+  return ref.watch(tripRepositoryProvider).watchById(tripId);
 });
 
 // ---------------------------------------------------------------------------
@@ -56,11 +56,9 @@ class _TripShellScreenState extends ConsumerState<TripShellScreen>
 
   @override
   Widget build(BuildContext context) {
-    final tripNameAsync = ref.watch(_tripNameProvider(widget.tripId));
-    final tripName = tripNameAsync.maybeWhen(
-      data: (name) => name.isNotEmpty ? name : 'Cargando...',
-      orElse: () => 'Cargando...',
-    );
+    final tripAsync = ref.watch(_tripProvider(widget.tripId));
+    final trip = tripAsync.value;
+    final tripName = trip?.name ?? 'Cargando...';
 
     return Scaffold(
       backgroundColor: VamosColors.bg,
@@ -92,8 +90,10 @@ class _TripShellScreenState extends ConsumerState<TripShellScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          // F2 — Itinerario (stub until F2.1 is built)
-          _StubTab(label: 'Itinerario'),
+          // F2 — Itinerario (live when trip is loaded, loading spinner otherwise)
+          trip != null
+              ? ItineraryScreen(tripId: widget.tripId, trip: trip)
+              : const Center(child: CircularProgressIndicator()),
           // F3 — Gastos (stub until F3.1 is built)
           _StubTab(label: 'Gastos'),
           // F4.1 — Miembros (live)

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// Mirrors the `trips/{tripId}/items/{itemId}` Firestore document.
 ///
 /// See `docs/05-modelo-datos-2.md` §2.2 for the canonical schema.
@@ -53,6 +55,56 @@ class ItineraryItem {
 
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  // ---------------------------------------------------------------------------
+  // Serialization
+  // ---------------------------------------------------------------------------
+
+  /// Creates an [ItineraryItem] from a Firestore [DocumentSnapshot].
+  factory ItineraryItem.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc) {
+    final d = doc.data()!;
+    return ItineraryItem(
+      id: doc.id,
+      title: d['title'] as String,
+      day: (d['day'] as Timestamp).toDate(),
+      time: d['time'] as String?,
+      location: d['location'] as String?,
+      notes: d['notes'] as String?,
+      authorId: d['authorId'] as String,
+      status: d['status'] as String,
+      votes: Map<String, String>.from(
+          (d['votes'] as Map<String, dynamic>?) ?? {}),
+      estimatedCostPerPerson:
+          (d['estimatedCostPerPerson'] as num?)?.toDouble(),
+      estimatedCostCurrency: d['estimatedCostCurrency'] as String?,
+      estimatedCostExchangeRate:
+          (d['estimatedCostExchangeRate'] as num?)?.toDouble(),
+      createdAt: (d['createdAt'] as Timestamp).toDate(),
+      updatedAt: (d['updatedAt'] as Timestamp).toDate(),
+    );
+  }
+
+  /// Serializes to a Firestore-compatible map.
+  /// The document [id] is NOT included — it lives as the document key.
+  Map<String, dynamic> toMap() => {
+        'title': title,
+        'day': Timestamp.fromDate(day),
+        if (time != null) 'time': time,
+        if (location != null) 'location': location,
+        if (notes != null) 'notes': notes,
+        'authorId': authorId,
+        'status': status,
+        'votes': votes,
+        if (estimatedCostPerPerson != null)
+          'estimatedCostPerPerson': estimatedCostPerPerson,
+        if (estimatedCostCurrency != null)
+          'estimatedCostCurrency': estimatedCostCurrency,
+        if (estimatedCostExchangeRate != null)
+          'estimatedCostExchangeRate': estimatedCostExchangeRate,
+        'createdAt': Timestamp.fromDate(createdAt),
+        'updatedAt': Timestamp.fromDate(updatedAt),
+      };
 
   ItineraryItem copyWith({
     String? id,

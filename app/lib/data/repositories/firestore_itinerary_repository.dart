@@ -7,9 +7,6 @@ import 'package:vamos/data/repositories/itinerary_repository.dart';
 /// Firestore implementation of [ItineraryRepository].
 ///
 /// This is the ONLY file in the app that imports `cloud_firestore` for items.
-/// Skeleton: methods throw [UnimplementedError] until F2.x implements the
-/// itinerary flow. The interface is in place so that notifiers can depend on
-/// [ItineraryRepository] without coupling to Firebase.
 class FirestoreItineraryRepository implements ItineraryRepository {
   const FirestoreItineraryRepository(this._firestore);
 
@@ -20,10 +17,15 @@ class FirestoreItineraryRepository implements ItineraryRepository {
 
   @override
   Stream<List<ItineraryItem>> watchTripItems(String tripId) {
-    // TODO(F2-x): implement when the itinerary flow is built.
-    // ignore: unused_local_variable
-    final col = _items(tripId);
-    throw UnimplementedError('watchTripItems is not yet implemented');
+    return _items(tripId)
+        .orderBy('day')
+        .orderBy('createdAt')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => ItineraryItem.fromFirestore(
+                  doc as DocumentSnapshot<Map<String, dynamic>>,
+                ))
+            .toList());
   }
 
   @override
@@ -31,8 +33,8 @@ class FirestoreItineraryRepository implements ItineraryRepository {
     required String tripId,
     required ItineraryItem item,
   }) async {
-    // TODO(F2-x): implement when the itinerary flow is built.
-    throw UnimplementedError('createItem is not yet implemented');
+    final docRef = _items(tripId).doc(); // auto-generated ID
+    await docRef.set(item.toMap());
   }
 
   @override
@@ -40,8 +42,9 @@ class FirestoreItineraryRepository implements ItineraryRepository {
     required String tripId,
     required ItineraryItem item,
   }) async {
-    // TODO(F2-x): implement when the itinerary flow is built.
-    throw UnimplementedError('updateItem is not yet implemented');
+    await _items(tripId)
+        .doc(item.id)
+        .update(item.toMap()..['updatedAt'] = Timestamp.now());
   }
 
   @override
@@ -49,8 +52,20 @@ class FirestoreItineraryRepository implements ItineraryRepository {
     required String tripId,
     required String itemId,
   }) async {
-    // TODO(F2-x): implement when the itinerary flow is built.
-    throw UnimplementedError('deleteItem is not yet implemented');
+    await _items(tripId).doc(itemId).delete();
+  }
+
+  @override
+  Future<void> castVote({
+    required String tripId,
+    required String itemId,
+    required String userId,
+    required String vote,
+  }) async {
+    await _items(tripId).doc(itemId).update({
+      'votes.$userId': vote,
+      'updatedAt': Timestamp.now(),
+    });
   }
 }
 
