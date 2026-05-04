@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID10.com.jabsolutions.vamos",
+        "paths": ["/j/*"]
+      }
+    ]
+  }
+}

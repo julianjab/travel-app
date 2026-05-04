@@ -45,18 +45,34 @@ class _AuthChangeNotifier extends ChangeNotifier {
 ///   /trips/new                → [CreateTripScreen] (create trip form, F1.2)
 ///   /trips/:id/invite         → [InviteScreen]   (success + share link, F1.3)
 ///   /trips/:id                → stub for F2.1
+///   /join/:code               → stub for F1.6 (deep link entry point)
 ///
 /// Redirect logic:
-///   - Not signed in → /login (from any route)
+///   - Not signed in → /login (from any route except /join/:code)
 ///   - Signed in on /login → /trips
+///
+/// Deep links handled:
+///   - https://vamos.app/j/{code}  (Universal Links / App Links)
+///   - vamos://join/{code}         (custom URL scheme fallback)
+///
+/// Both resolve to /join/:code in the router. The platform layer passes the
+/// initial URL to GoRouter via the [GoRouter.initialLocation] resolution;
+/// go_router picks it up automatically via the platform channel.
 final router = GoRouter(
   initialLocation: '/trips',
   refreshListenable: _AuthChangeNotifier(),
+  // Handle malformed or unrecognized deep links gracefully.
+  onException: (context, state, router) {
+    router.go('/trips');
+  },
   redirect: (context, state) {
     final isLoggedIn = FirebaseAuth.instance.currentUser != null;
     final isOnLogin = state.matchedLocation == '/login';
+    // Allow the join flow through even when not signed in — F1-06 handles
+    // authentication as part of the onboarding; do not short-circuit it.
+    final isOnJoin = state.matchedLocation.startsWith('/join/');
 
-    if (!isLoggedIn && !isOnLogin) return '/login';
+    if (!isLoggedIn && !isOnLogin && !isOnJoin) return '/login';
     if (isLoggedIn && isOnLogin) return '/trips';
     return null;
   },
@@ -67,6 +83,23 @@ final router = GoRouter(
     GoRoute(
       path: '/login',
       builder: (context, state) => const LoginScreen(),
+    ),
+
+    // -------------------------------------------------------------------------
+    // Deep link entry: join a trip via invite code (F1.5 / F1.6)
+    //
+    // Receives the invite code from:
+    //   - Universal Link:  https://vamos.app/j/{code}  → /join/{code}
+    //   - Custom scheme:   vamos://join/{code}          → /join/{code}
+    //
+    // TODO(F1-06): replace _StubScreen with JoinScreen once F1-06 is built.
+    // -------------------------------------------------------------------------
+    GoRoute(
+      path: '/join/:code',
+      builder: (context, state) {
+        final code = state.pathParameters['code']!;
+        return _StubScreen(title: 'Unirse · $code');
+      },
     ),
 
     // -------------------------------------------------------------------------
