@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
-import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/features/members/presentation/members_screen.dart';

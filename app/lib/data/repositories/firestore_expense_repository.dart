@@ -21,6 +21,8 @@ class FirestoreExpenseRepository implements ExpenseRepository {
   @override
   Stream<List<Expense>> watchTripExpenses(String tripId) {
     // TODO(F3-x): implement when the expenses flow is built.
+    // ignore: unused_local_variable
+    final col = _expenses(tripId);
     throw UnimplementedError('watchTripExpenses is not yet implemented');
   }
 

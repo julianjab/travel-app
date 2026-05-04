@@ -130,7 +130,7 @@ class _MembersList extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: VamosSpacing.md),
           sliver: SliverList.separated(
             itemCount: members.length,
-            separatorBuilder: (_, __) =>
+            separatorBuilder: (context, index) =>
                 const SizedBox(height: VamosSpacing.sm),
             itemBuilder: (context, index) {
               final member = members[index];
@@ -233,7 +233,7 @@ class _MemberCard extends StatelessWidget {
   /// Flattens the [tags] map into display strings.
   ///
   /// Keys used in the data model: "diet", "pace", "budget".
-  /// Each key holds a List<String> (diet, pace) or String (budget).
+  /// Each key holds a List of Strings (diet, pace) or a String (budget).
   static List<String> _buildTagLabels(Map<String, dynamic> tags) {
     final labels = <String>[];
 
