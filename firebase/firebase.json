@@ -14,6 +14,12 @@
       "**/node_modules/**"
     ],
     "cleanUrls": true,
-    "trailingSlash": false
+    "trailingSlash": false,
+    "rewrites": [
+      {
+        "source": "/j/**",
+        "destination": "/j/index.html"
+      }
+    ]
   }
 }
