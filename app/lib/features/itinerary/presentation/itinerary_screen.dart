@@ -9,6 +9,8 @@ import 'package:vamos/data/models/itinerary_item.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/itinerary/application/itinerary_notifier.dart';
 import 'package:vamos/features/itinerary/presentation/widgets/item_card.dart';
+import 'package:vamos/shared/widgets/empty_state.dart';
+import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 /// F2.1 — Itinerary list grouped by day.
 ///
@@ -37,8 +39,8 @@ class ItineraryScreen extends ConsumerWidget {
         child: const Icon(Icons.add),
       ),
       body: itemsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => _ErrorState(message: e.toString()),
+        loading: () => const VamosLoadingIndicator(),
+        error: (e, _) => _ErrorState(tripId: tripId, trip: trip),
         data: (items) => _ItemsList(
           tripId: tripId,
           trip: trip,
@@ -187,32 +189,13 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(VamosSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Acá no hay nada todavía.',
-              style: VamosTypography.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: VamosSpacing.sm),
-            Text(
-              'Cualquiera puede tirar la primera idea — un vuelo, un restaurante, lo que sea. Después se vota.',
-              style: VamosTypography.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: VamosSpacing.lg),
-            FilledButton(
-              onPressed: () =>
-                  context.push('/trips/$tripId/items/new', extra: trip),
-              child: const Text('+ Agregar primer item'),
-            ),
-          ],
-        ),
-      ),
+    return VamosEmptyState(
+      icon: Icons.map_outlined,
+      // Exact copy from docs/06-identidad-y-tono.md §5.4
+      message:
+          'Acá no hay nada todavía.\n\nCualquiera puede tirar la primera idea — un vuelo, un restaurante, lo que sea. Después se vota.',
+      actionLabel: '+ Agregar primer item',
+      onAction: () => context.push('/trips/$tripId/items/new', extra: trip),
     );
   }
 }
@@ -222,9 +205,10 @@ class _EmptyState extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.message});
+  const _ErrorState({required this.tripId, required this.trip});
 
-  final String message;
+  final String tripId;
+  final Trip trip;
 
   @override
   Widget build(BuildContext context) {
@@ -234,8 +218,14 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const Icon(
+              Icons.error_outline,
+              size: VamosSpacing.xxl,
+              color: VamosColors.red,
+            ),
+            const SizedBox(height: VamosSpacing.md),
             Text(
-              'Error al cargar el itinerario.',
+              'Algo salió mal.',
               style: VamosTypography.titleMedium,
               textAlign: TextAlign.center,
             ),

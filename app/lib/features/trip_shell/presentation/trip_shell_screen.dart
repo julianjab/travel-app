@@ -7,6 +7,7 @@ import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/features/expenses/presentation/expenses_screen.dart';
 import 'package:vamos/features/itinerary/presentation/itinerary_screen.dart';
 import 'package:vamos/features/members/presentation/members_screen.dart';
+import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 // ---------------------------------------------------------------------------
 // Trip stream provider (family) — scoped to this file
@@ -91,11 +92,11 @@ class _TripShellScreenState extends ConsumerState<TripShellScreen>
           // F2 — Itinerario (live when trip is loaded, loading spinner otherwise)
           trip != null
               ? ItineraryScreen(tripId: widget.tripId, trip: trip)
-              : const Center(child: CircularProgressIndicator()),
+              : const VamosLoadingIndicator(),
           // F3 — Gastos (live when trip is loaded, loading spinner otherwise)
           trip != null
               ? ExpensesScreen(tripId: widget.tripId, trip: trip)
-              : const Center(child: CircularProgressIndicator()),
+              : const VamosLoadingIndicator(),
           // F4.1 — Miembros (live)
           MembersScreen(tripId: widget.tripId),
         ],

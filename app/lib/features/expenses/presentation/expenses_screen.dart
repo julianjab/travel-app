@@ -8,6 +8,8 @@ import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/data/models/expense.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/expenses/application/expenses_notifier.dart';
+import 'package:vamos/shared/widgets/empty_state.dart';
+import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 /// F3-02 — Expenses list screen.
 ///
@@ -34,11 +36,16 @@ class ExpensesScreen extends ConsumerWidget {
       // Actions are provided via the shell but we surface the balances nav
       // as a floating text button at the top for simplicity within the tab.
       body: expensesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const VamosLoadingIndicator(),
         error: (err, _) => _ErrorState(onRetry: () => ref.invalidate(expensesProvider(tripId))),
         data: (expenses) => expenses.isEmpty
-            ? _EmptyState(
-                onAdd: () => context.push(
+            ? VamosEmptyState(
+                icon: Icons.receipt_long_outlined,
+                // Exact copy from docs/06-identidad-y-tono.md §5.5
+                message:
+                    'Acá no hay nada todavía.\n\nCuando alguien registre el primer gasto, te decimos a quién pagarle.',
+                actionLabel: '+ Agregar primer gasto',
+                onAction: () => context.push(
                   '/trips/${trip.id}/expenses/new',
                   extra: trip,
                 ),
@@ -205,59 +212,6 @@ class _ExpenseCard extends StatelessWidget {
   /// In v1.1 this will be replaced by member aliases.
   String _shortenId(String uid) =>
       uid.length > 8 ? uid.substring(0, 8) : uid;
-}
-
-// ---------------------------------------------------------------------------
-// Empty state
-// ---------------------------------------------------------------------------
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.onAdd});
-
-  final VoidCallback onAdd;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(VamosSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.receipt_long_outlined,
-              size: VamosSpacing.xxxl,
-              color: VamosColors.textMuted,
-            ),
-            const SizedBox(height: VamosSpacing.md),
-            Text(
-              'Acá no hay gastos todavía.',
-              style: VamosTypography.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: VamosSpacing.sm),
-            Text(
-              'Agregá el primer gasto del viaje y el grupo lo va a ver al instante.',
-              style: VamosTypography.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: VamosSpacing.lg),
-            FilledButton(
-              onPressed: onAdd,
-              style: FilledButton.styleFrom(
-                backgroundColor: VamosColors.sol500,
-                foregroundColor: VamosColors.textOnDark,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: VamosRadius.brFull,
-                ),
-              ),
-              child: const Text('Agregar gasto'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 // ---------------------------------------------------------------------------
