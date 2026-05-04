@@ -210,21 +210,44 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'profile',
             builder: (context, state) {
               final code = state.pathParameters['code']!;
-              return JoinProfileScreen(inviteCode: code);
+              final extra = state.extra as Map<String, dynamic>? ?? {};
+              final tripId = extra['tripId'] as String? ?? '';
+              final defaultName = extra['defaultName'] as String? ?? '';
+              return JoinProfileScreen(
+                inviteCode: code,
+                tripId: tripId,
+                defaultName: defaultName,
+              );
             },
           ),
           GoRoute(
             path: 'alias',
             builder: (context, state) {
               final code = state.pathParameters['code']!;
-              return JoinAliasScreen(inviteCode: code);
+              final extra = state.extra as Map<String, dynamic>? ?? {};
+              final tripId = extra['tripId'] as String? ?? '';
+              final isNewUser = extra['isNewUser'] as bool? ?? false;
+              final defaultName = extra['defaultName'] as String? ?? '';
+              return JoinAliasScreen(
+                inviteCode: code,
+                tripId: tripId,
+                isNewUser: isNewUser,
+                defaultName: defaultName,
+              );
             },
           ),
           GoRoute(
             path: 'tags',
             builder: (context, state) {
               final code = state.pathParameters['code']!;
-              return JoinTagsScreen(inviteCode: code);
+              final extra = state.extra as Map<String, dynamic>? ?? {};
+              final tripId = extra['tripId'] as String? ?? '';
+              final isNewUser = extra['isNewUser'] as bool? ?? false;
+              return JoinTagsScreen(
+                inviteCode: code,
+                tripId: tripId,
+                isNewUser: isNewUser,
+              );
             },
           ),
         ],
