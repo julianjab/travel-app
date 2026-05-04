@@ -1,2 +1,7 @@
 # Symlink created by deploy script pointing to ../web/dist
 hosting-dist
+
+# Admin scripts
+node_modules/
+package-lock.json
+*.serviceaccount.json
