@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// Mirrors the `trips/{tripId}/expenses/{expenseId}` Firestore document.
 ///
 /// See `docs/05-modelo-datos-2.md` §2.2 for the canonical schema.
@@ -62,6 +64,58 @@ class Expense {
 
   /// Audit trail of edits. Each entry records who changed what and the old values.
   final List<Map<String, dynamic>> editHistory;
+
+  // ---------------------------------------------------------------------------
+  // Serialization
+  // ---------------------------------------------------------------------------
+
+  /// Creates an [Expense] from a Firestore [DocumentSnapshot].
+  factory Expense.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final d = doc.data()!;
+    return Expense(
+      id: doc.id,
+      amount: (d['amount'] as num).toDouble(),
+      currency: d['currency'] as String,
+      exchangeRate: (d['exchangeRate'] as num).toDouble(),
+      amountInMainCurrency: (d['amountInMainCurrency'] as num).toDouble(),
+      description: d['description'] as String?,
+      photoURL: d['photoURL'] as String?,
+      paidBy: d['paidBy'] as String,
+      splitBetween: List<String>.from(d['splitBetween'] as List),
+      splitType: d['splitType'] as String,
+      splitDetails: d['splitDetails'] as Map<String, dynamic>?,
+      date: (d['date'] as Timestamp).toDate(),
+      createdAt: (d['createdAt'] as Timestamp).toDate(),
+      createdBy: d['createdBy'] as String,
+      hasSettlements: d['hasSettlements'] as bool? ?? false,
+      editHistory: List<Map<String, dynamic>>.from(
+        (d['editHistory'] as List?) ?? [],
+      ),
+    );
+  }
+
+  /// Serializes to a Firestore-compatible map.
+  /// The document [id] is NOT included — it lives as the document key.
+  Map<String, dynamic> toMap() => {
+        'amount': amount,
+        'currency': currency,
+        'exchangeRate': exchangeRate,
+        'amountInMainCurrency': amountInMainCurrency,
+        if (description != null) 'description': description,
+        'paidBy': paidBy,
+        'splitBetween': splitBetween,
+        'splitType': splitType,
+        if (splitDetails != null) 'splitDetails': splitDetails,
+        'date': Timestamp.fromDate(date),
+        'createdAt': Timestamp.fromDate(createdAt),
+        'createdBy': createdBy,
+        'hasSettlements': hasSettlements,
+        'editHistory': editHistory,
+      };
+
+  // ---------------------------------------------------------------------------
+  // Equality / copy
+  // ---------------------------------------------------------------------------
 
   Expense copyWith({
     String? id,

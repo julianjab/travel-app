@@ -4,6 +4,7 @@ import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
+import 'package:vamos/features/expenses/presentation/expenses_screen.dart';
 import 'package:vamos/features/itinerary/presentation/itinerary_screen.dart';
 import 'package:vamos/features/members/presentation/members_screen.dart';
 
@@ -23,12 +24,9 @@ final _tripProvider =
 
 /// Tabbed container for the in-trip views: Itinerario, Gastos, Gente.
 ///
-/// Renders a bottom [TabBar] with three tabs. The first two (Itinerario, Gastos)
-/// are stubs that will be replaced by F2 and F3. The third tab renders the live
-/// [MembersScreen].
-///
-/// The AppBar title streams the trip name from Firestore, showing "Cargando..."
-/// while the snapshot is not yet available.
+/// Renders a bottom [TabBar] with three tabs. The AppBar title streams the trip
+/// name from Firestore, showing "Cargando..." while the snapshot is not yet
+/// available.
 class TripShellScreen extends ConsumerStatefulWidget {
   const TripShellScreen({super.key, required this.tripId});
 
@@ -94,8 +92,10 @@ class _TripShellScreenState extends ConsumerState<TripShellScreen>
           trip != null
               ? ItineraryScreen(tripId: widget.tripId, trip: trip)
               : const Center(child: CircularProgressIndicator()),
-          // F3 — Gastos (stub until F3.1 is built)
-          _StubTab(label: 'Gastos'),
+          // F3 — Gastos (live when trip is loaded, loading spinner otherwise)
+          trip != null
+              ? ExpensesScreen(tripId: widget.tripId, trip: trip)
+              : const Center(child: CircularProgressIndicator()),
           // F4.1 — Miembros (live)
           MembersScreen(tripId: widget.tripId),
         ],
@@ -104,22 +104,3 @@ class _TripShellScreenState extends ConsumerState<TripShellScreen>
   }
 }
 
-// ---------------------------------------------------------------------------
-// Stub tab — placeholder for F2 and F3
-// ---------------------------------------------------------------------------
-
-class _StubTab extends StatelessWidget {
-  const _StubTab({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(
-        'Próximamente — $label',
-        style: VamosTypography.bodyMedium,
-      ),
-    );
-  }
-}

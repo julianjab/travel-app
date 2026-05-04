@@ -39,4 +39,17 @@ abstract class ExpenseRepository {
     required String tripId,
     required String expenseId,
   });
+
+  /// Creates a settlement record under `trips/{tripId}/settlements`.
+  ///
+  /// A settlement marks that [fromUserId] has paid [toUserId] the given
+  /// [amount] in [currency], resolving a computed debt.
+  Future<void> createSettlement({
+    required String tripId,
+    required String fromUserId,
+    required String toUserId,
+    required double amount,
+    required String currency,
+    required String createdBy,
+  });
 }

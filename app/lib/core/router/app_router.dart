@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vamos/data/models/expense.dart';
 import 'package:vamos/data/models/itinerary_item.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/auth/application/auth_notifier.dart';
 import 'package:vamos/features/auth/presentation/login_screen.dart';
+import 'package:vamos/features/expenses/presentation/balances_screen.dart';
+import 'package:vamos/features/expenses/presentation/create_expense_screen.dart';
+import 'package:vamos/features/expenses/presentation/edit_expense_screen.dart';
+import 'package:vamos/features/expenses/presentation/expense_detail_screen.dart';
 import 'package:vamos/features/itinerary/presentation/create_item_screen.dart';
 import 'package:vamos/features/itinerary/presentation/edit_item_screen.dart';
 import 'package:vamos/features/itinerary/presentation/item_detail_screen.dart';
@@ -51,12 +56,16 @@ class _RouterNotifier extends ChangeNotifier {
 /// auth state without touching Firebase directly.
 ///
 /// Routes:
-///   /login                    → [LoginScreen]    (unauthenticated)
-///   /trips                    → [MyTripsScreen]  (authenticated home, F1.1)
-///   /trips/new                → [CreateTripScreen] (create trip form, F1.2)
-///   /trips/:id/invite         → [InviteScreen]   (success + share link, F1.3)
-///   /trips/:id                → [TripShellScreen] (F1.7 / F4.1)
-///   /join/:code               → join onboarding flow (F1.4–F1.6)
+///   /login                                → [LoginScreen]    (unauthenticated)
+///   /trips                                → [MyTripsScreen]  (F1.1)
+///   /trips/new                            → [CreateTripScreen] (F1.2)
+///   /trips/:id/invite                     → [InviteScreen]   (F1.3)
+///   /trips/:id                            → [TripShellScreen] (F1.7/F4.1)
+///   /trips/:id/expenses/new               → [CreateExpenseScreen] (F3.3)
+///   /trips/:id/expenses/:expenseId        → [ExpenseDetailScreen] (F3.9)
+///   /trips/:id/expenses/:expenseId/edit   → [EditExpenseScreen] (F3.9)
+///   /trips/:id/balances                   → [BalancesScreen] (F3.10)
+///   /join/:code                           → join onboarding flow (F1.4–F1.6)
 final routerProvider = Provider<GoRouter>((ref) {
   final notifier = _RouterNotifier(ref);
   final goRouter = GoRouter(
@@ -98,6 +107,51 @@ final routerProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) {
                   final tripId = state.pathParameters['id']!;
                   return InviteScreen(tripId: tripId);
+                },
+              ),
+              // F3 — Expenses: create
+              GoRoute(
+                path: 'expenses/new',
+                builder: (context, state) {
+                  final trip = state.extra as Trip;
+                  return CreateExpenseScreen(trip: trip);
+                },
+              ),
+              // F3 — Expenses: detail (with edit/delete)
+              GoRoute(
+                path: 'expenses/:expenseId',
+                builder: (context, state) {
+                  final tripId = state.pathParameters['id']!;
+                  final extra = state.extra as Map<String, dynamic>;
+                  return ExpenseDetailScreen(
+                    tripId: tripId,
+                    expense: extra['expense'] as Expense,
+                    trip: extra['trip'] as Trip,
+                  );
+                },
+                routes: [
+                  // F3 — Expenses: edit
+                  GoRoute(
+                    path: 'edit',
+                    builder: (context, state) {
+                      final tripId = state.pathParameters['id']!;
+                      final extra = state.extra as Map<String, dynamic>;
+                      return EditExpenseScreen(
+                        tripId: tripId,
+                        expense: extra['expense'] as Expense,
+                        trip: extra['trip'] as Trip,
+                      );
+                    },
+                  ),
+                ],
+              ),
+              // F3 — Balances view
+              GoRoute(
+                path: 'balances',
+                builder: (context, state) {
+                  final tripId = state.pathParameters['id']!;
+                  final trip = state.extra as Trip;
+                  return BalancesScreen(tripId: tripId, trip: trip);
                 },
               ),
               // F2 — Itinerary: create item
