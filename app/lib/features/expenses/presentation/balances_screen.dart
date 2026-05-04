@@ -134,8 +134,16 @@ class _BalancesBody extends StatelessWidget {
           const SizedBox(height: VamosSpacing.lg),
 
           // --- Suggested transfers ---
-          Text('Transferencias sugeridas', style: VamosTypography.caption),
-          const SizedBox(height: VamosSpacing.sm),
+          // §5.8: header only shown when there are transfers pending.
+          // §5.6: no expenses yet → "Acá no hay nada todavía."
+          // §5.7: expenses exist but everyone is even → "Todos quedaron parejos."
+          if (transfers.isNotEmpty) ...[
+            Text(
+              'Para que todos queden parejos, estas son las transferencias más cortas:',
+              style: VamosTypography.caption,
+            ),
+            const SizedBox(height: VamosSpacing.sm),
+          ],
           if (transfers.isEmpty)
             Card(
               margin: EdgeInsets.zero,
@@ -149,15 +157,25 @@ class _BalancesBody extends StatelessWidget {
                 padding: const EdgeInsets.all(VamosSpacing.md),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.check_circle_outline,
-                      color: VamosColors.green,
+                    Icon(
+                      expenses.isEmpty
+                          ? Icons.hourglass_empty_outlined
+                          : Icons.check_circle_outline,
+                      color: expenses.isEmpty
+                          ? VamosColors.text3
+                          : VamosColors.green,
                       size: VamosSpacing.md,
                     ),
                     const SizedBox(width: VamosSpacing.sm),
-                    Text(
-                      'El grupo está al día. No hay deudas pendientes.',
-                      style: VamosTypography.bodyMedium,
+                    Expanded(
+                      child: Text(
+                        // §5.6 — no expenses at all (nothing to settle yet)
+                        // §5.7 — expenses exist but everyone is even
+                        expenses.isEmpty
+                            ? 'Acá no hay nada todavía.\n\nCuando haya gastos para saldar, las transferencias aparecen acá.'
+                            : 'Todos quedaron parejos.',
+                        style: VamosTypography.bodyMedium,
+                      ),
                     ),
                   ],
                 ),
