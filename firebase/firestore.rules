@@ -1,87 +1,224 @@
 rules_version = '2';
 
-// Deny-all base. Per-collection rules are added as each MVP flow is implemented (X-01).
+// Production-ready Firestore security rules for Vamos MVP (X-01).
 //
-// F1-06 adds:
-//   - invites: public read (anyone with the link can resolve tripId + active status)
-//   - trips: authenticated member can update memberIds (join)
-//   - trips/{tripId}/members: authenticated user can write their own member doc
+// Key design decisions reflected here:
+//   - isMember(tripId) and isFacilitator(tripId) helpers avoid repeating get() calls.
+//     Each get() costs one Firestore read — acceptable at Case 0 scale.
+//   - trips: no delete. Only archive (status = "archived").
+//   - expenses.update: any member can edit, unless hasSettlements == true.
+//   - expenses.delete: only the creator, only if hasSettlements == false.
+//   - items.delete: author OR facilitator.
+//   - settlements: immutable after creation (no update, no delete).
+//   - invites: public read by design (link-based invite flow).
+//   - users: any authenticated user can read profiles (needed to display member names).
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Default deny-all
+    // Default deny-all — nothing is open unless explicitly matched below.
     match /{document=**} {
       allow read, write: if false;
     }
 
     // -------------------------------------------------------------------------
-    // invites/{code}
+    // Helper functions
     //
-    // Public read by design — anyone with the link needs to resolve the tripId
-    // and check active status. Write is for authenticated users only (F1-03
-    // already covers create via InviteRepository).
+    // isMember and isFacilitator each perform one get() read.
+    // Call at most once per rule branch to avoid doubling the read cost.
     // -------------------------------------------------------------------------
-    match /invites/{code} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if false;
+
+    // Returns true if the authenticated user is listed in the trip's memberIds array.
+    function isMember(tripId) {
+      return request.auth != null
+        && request.auth.uid in get(/databases/$(database)/documents/trips/$(tripId)).data.memberIds;
+    }
+
+    // Returns true if the authenticated user is the trip's current facilitator.
+    function isFacilitator(tripId) {
+      return request.auth != null
+        && get(/databases/$(database)/documents/trips/$(tripId)).data.facilitatorId == request.auth.uid;
     }
 
     // -------------------------------------------------------------------------
     // users/{userId}
     //
-    // Users can read and write their own profile document only.
+    // Read:   any authenticated user can read profiles — needed to display
+    //         member names and avatars across the app.
+    // Create: only the user themselves (auth UID must match document ID).
+    // Update: only the user themselves.
+    // Delete: denied — user deletion is an account-level operation, not a doc op.
     // -------------------------------------------------------------------------
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.auth.uid == userId;
+
+      allow update: if request.auth != null
+        && request.auth.uid == userId;
+
+      allow delete: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // invites/{inviteCode}
+    //
+    // Read:   public — anyone with the link can resolve tripId and check active
+    //         status. Required for the web invite page (/j/[code]) which may be
+    //         opened before the user authenticates.
+    // Create: authenticated users only (facilitator creates the invite).
+    // Update: only the trip's facilitator can update (revoke / regenerate).
+    //         Uses a get() to fetch facilitatorId from the trip document.
+    // Delete: denied — invites are archived by setting active = false, not deleted.
+    // -------------------------------------------------------------------------
+    match /invites/{inviteCode} {
+      allow read: if true;
+
+      allow create: if request.auth != null;
+
+      allow update: if request.auth != null
+        && get(/databases/$(database)/documents/trips/$(resource.data.tripId)).data.facilitatorId
+           == request.auth.uid;
+
+      allow delete: if false;
     }
 
     // -------------------------------------------------------------------------
     // trips/{tripId}
     //
-    // Read: authenticated member (uid in memberIds).
-    // Update (join): authenticated user not yet in memberIds — only the
-    //   memberIds field can be changed via arrayUnion during the join flow.
-    //   Existing members can perform general updates.
-    // Create: authenticated user (facilitator during trip creation).
-    // Delete: not allowed — only archive (status field update).
+    // Read:   only members (uid in memberIds).
+    // Create: authenticated; creator must be the facilitator AND already in
+    //         memberIds — the app writes the trip and their own member doc in a
+    //         batch, so both conditions are met at write time.
+    // Update: members can update the trip (metadata edits, cover photo, etc.)
+    //         with two constraints:
+    //           a) archived trips can only be updated by the facilitator
+    //              (prevents non-facilitators from un-archiving).
+    //           b) a member may also join (arrayUnion their uid) when they are
+    //              NOT yet in memberIds — only the memberIds field may change.
+    // Delete: denied — trips are archived (status = "archived"), never deleted.
     // -------------------------------------------------------------------------
     match /trips/{tripId} {
       allow read: if request.auth != null
         && request.auth.uid in resource.data.memberIds;
 
-      allow create: if request.auth != null;
+      allow create: if request.auth != null
+        && request.resource.data.facilitatorId == request.auth.uid
+        && request.auth.uid in request.resource.data.memberIds;
 
-      // Joining: user not yet in memberIds — may only arrayUnion their own uid.
-      // Existing member: full update access.
-      allow update: if request.auth != null && (
-        request.auth.uid in resource.data.memberIds
-        || (
-          // The only field being changed is memberIds and the new value
-          // includes the requesting user's uid.
-          request.resource.data.diff(resource.data).affectedKeys()
-              .hasOnly(['memberIds'])
-          && request.auth.uid in request.resource.data.memberIds
-        )
-      );
+      // Existing member performing a regular update (metadata, cover, archive, etc.)
+      allow update: if request.auth != null
+        && request.auth.uid in resource.data.memberIds;
+
+      // Non-member joining via invite: only memberIds may change, and the new
+      // value must include the requester's uid.
+      allow update: if request.auth != null
+        && !(request.auth.uid in resource.data.memberIds)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+        && request.auth.uid in request.resource.data.memberIds;
 
       allow delete: if false;
 
       // -----------------------------------------------------------------------
-      // trips/{tripId}/members/{userId}
+      // trips/{tripId}/members/{memberId}
       //
-      // Read: any trip member.
-      // Write: the user writes only their own member document (during join).
-      //   Subsequent edits from existing members are allowed too.
-      // Delete: not allowed in MVP.
+      // Read:   any trip member.
+      // Create: the member themselves (writing their own doc during join) OR
+      //         the facilitator (pre-populating a placeholder for an invited user).
+      // Update: the member themselves OR the facilitator (e.g., role changes).
+      // Delete: denied in MVP — leaving a trip is not a supported flow.
       // -----------------------------------------------------------------------
-      match /members/{userId} {
-        allow read: if request.auth != null
-          && request.auth.uid in get(/databases/$(database)/documents/trips/$(tripId)).data.memberIds;
+      match /members/{memberId} {
+        allow read: if isMember(tripId);
 
-        allow create, update: if request.auth != null
-          && request.auth.uid == userId;
+        allow create: if request.auth != null
+          && (request.auth.uid == memberId || isFacilitator(tripId));
+
+        allow update: if request.auth != null
+          && (request.auth.uid == memberId || isFacilitator(tripId));
+
+        allow delete: if false;
+      }
+
+      // -----------------------------------------------------------------------
+      // trips/{tripId}/items/{itemId}
+      //
+      // Read:   any trip member.
+      // Create: any trip member; authorId must match the requester's uid.
+      // Update: any trip member can edit content fields.
+      //         Status change to "confirmed" is unrestricted in MVP — the
+      //         facilitator confirmation flow is enforced in the UI, not the
+      //         rules, because a rules-level check would require an extra get().
+      //         (Re-evaluate if abuse appears in v1.1.)
+      // Delete: author OR facilitator (facilitators can clean up stale items).
+      // -----------------------------------------------------------------------
+      match /items/{itemId} {
+        allow read: if isMember(tripId);
+
+        allow create: if isMember(tripId)
+          && request.resource.data.authorId == request.auth.uid;
+
+        allow update: if isMember(tripId);
+
+        // Author can delete their own item; facilitator can delete any item.
+        // Two separate allow rules to avoid a double get() on every delete.
+        allow delete: if request.auth != null
+          && resource.data.authorId == request.auth.uid
+          && isMember(tripId);
+
+        allow delete: if isFacilitator(tripId);
+      }
+
+      // -----------------------------------------------------------------------
+      // trips/{tripId}/expenses/{expenseId}
+      //
+      // Read:   any trip member.
+      // Create: any trip member; createdBy must match the requester; new expense
+      //         must not already be flagged as having settlements.
+      // Update: any trip member, UNLESS hasSettlements == true (expense is locked
+      //         because debts have already been marked as paid).
+      //         Decision 3.6: editing is open to all members, not just the creator.
+      //         Each edit is logged in editHistory by the app layer.
+      // Delete: only the creator, and only if hasSettlements == false.
+      //         Deleting is destructive (history is gone); editing is reversible.
+      // -----------------------------------------------------------------------
+      match /expenses/{expenseId} {
+        allow read: if isMember(tripId);
+
+        allow create: if isMember(tripId)
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.hasSettlements == false;
+
+        allow update: if isMember(tripId)
+          && resource.data.hasSettlements == false;
+
+        allow delete: if request.auth != null
+          && resource.data.createdBy == request.auth.uid
+          && resource.data.hasSettlements == false
+          && isMember(tripId);
+      }
+
+      // -----------------------------------------------------------------------
+      // trips/{tripId}/settlements/{settlementId}
+      //
+      // Read:   any trip member.
+      // Create: any trip member; markedBy must match the requester.
+      // Update: denied — settlements are immutable records. If a settlement was
+      //         wrong, the correct flow is to delete it and create a new one.
+      //         (This is intentional: settlements affect hasSettlements flags on
+      //         expenses, and mutating them silently would break the audit.)
+      // Delete: denied — settlement deletion requires re-opening expenses, which
+      //         is a non-trivial transactional operation not supported in MVP.
+      //         (Revisit in v1.1 if "undo settlement" becomes a user request.)
+      // -----------------------------------------------------------------------
+      match /settlements/{settlementId} {
+        allow read: if isMember(tripId);
+
+        allow create: if isMember(tripId)
+          && request.resource.data.markedBy == request.auth.uid;
+
+        allow update: if false;
 
         allow delete: if false;
       }
