@@ -90,13 +90,17 @@ service cloud.firestore {
     // Read:   only members (uid in memberIds).
     // Create: authenticated; creator must be the facilitator AND already in
     //         memberIds — the app writes the trip and their own member doc in a
-    //         batch, so both conditions are met at write time.
+    //         batch, so both conditions are met at write time. The
+    //         memberAliases map must contain exactly the creator's entry so
+    //         the X-11 invariant `memberAliases.size() == memberIds.size()`
+    //         holds from the start.
     // Update: members can update the trip (metadata edits, cover photo, etc.)
     //         with two constraints:
     //           a) archived trips can only be updated by the facilitator
     //              (prevents non-facilitators from un-archiving).
     //           b) a member may also join (arrayUnion their uid) when they are
-    //              NOT yet in memberIds — only the memberIds field may change.
+    //              NOT yet in memberIds — only memberIds + their own
+    //              memberAliases entry may change (X-11).
     // Delete: denied — trips are archived (status = "archived"), never deleted.
     // -------------------------------------------------------------------------
     match /trips/{tripId} {
@@ -105,18 +109,48 @@ service cloud.firestore {
 
       allow create: if request.auth != null
         && request.resource.data.facilitatorId == request.auth.uid
-        && request.auth.uid in request.resource.data.memberIds;
+        && request.auth.uid in request.resource.data.memberIds
+        // X-11: memberAliases must mirror memberIds (one entry per member,
+        // creator's own alias present).
+        && request.resource.data.memberAliases.size()
+           == request.resource.data.memberIds.size()
+        && request.resource.data.memberAliases.keys().hasAll(request.resource.data.memberIds)
+        && request.resource.data.memberAliases[request.auth.uid] is string;
 
-      // Existing member performing a regular update (metadata, cover, archive, etc.)
+      // Existing member performing a regular update (metadata, cover, archive, etc.).
+      // X-11 — additional invariants when the update touches memberAliases:
+      //   a) the keys/values that already existed for OTHER members must not
+      //      change (a member can only edit their own alias entry).
+      //   b) sizes must stay equal between memberIds and memberAliases.
       allow update: if request.auth != null
-        && request.auth.uid in resource.data.memberIds;
+        && request.auth.uid in resource.data.memberIds
+        && request.resource.data.memberAliases.size()
+           == request.resource.data.memberIds.size()
+        && request.resource.data.memberAliases.keys().hasAll(request.resource.data.memberIds)
+        && (
+          // Either memberAliases didn't change at all,
+          !(request.resource.data.diff(resource.data).affectedKeys().hasAny(['memberAliases']))
+          // or the only diff inside memberAliases is the requester's own key.
+          || request.resource.data.memberAliases.diff(resource.data.memberAliases)
+               .affectedKeys().hasOnly([request.auth.uid])
+        );
 
-      // Non-member joining via invite: only memberIds may change, and the new
-      // value must include the requester's uid.
+      // Non-member joining via invite: only memberIds + their own
+      // memberAliases entry may change (X-11), and the new memberIds must
+      // include the requester's uid.
       allow update: if request.auth != null
         && !(request.auth.uid in resource.data.memberIds)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
-        && request.auth.uid in request.resource.data.memberIds;
+        && request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['memberIds', 'memberAliases'])
+        && request.auth.uid in request.resource.data.memberIds
+        && request.resource.data.memberAliases.size()
+           == request.resource.data.memberIds.size()
+        && request.resource.data.memberAliases.keys().hasAll(request.resource.data.memberIds)
+        // Only the joining user's alias entry may be added — existing entries
+        // must remain identical.
+        && request.resource.data.memberAliases.diff(resource.data.memberAliases)
+             .affectedKeys().hasOnly([request.auth.uid])
+        && request.resource.data.memberAliases[request.auth.uid] is string;
 
       allow delete: if false;
 
