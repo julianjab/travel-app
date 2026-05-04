@@ -8,6 +8,7 @@ import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/utils/date_formatters.dart';
 import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
+import 'package:vamos/core/utils/snackbar_utils.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/features/trips/application/generate_invite_notifier.dart';
@@ -94,14 +95,7 @@ class _Content extends ConsumerWidget {
     ref.listen<AsyncValue<String?>>(generateInviteProvider(tripId), (_, next) {
       next.whenOrNull(
         error: (err, _) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Error al regenerar. Intentá de nuevo.'),
-                duration: Duration(seconds: 3),
-              ),
-            );
-          }
+          if (context.mounted) showErrorSnackBar(context);
         },
       );
     });
@@ -235,14 +229,7 @@ class _Content extends ConsumerWidget {
 
     if (confirmed == true) {
       await ref.read(generateInviteProvider(tripId).notifier).regenerate();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Link regenerado'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
+      if (context.mounted) showSuccessSnackBar(context, 'Link regenerado');
     }
   }
 }
@@ -389,12 +376,7 @@ class _LinkChip extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Link copiado'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+    showSuccessSnackBar(context, 'Link copiado');
   }
 }
 
@@ -421,13 +403,7 @@ class _WhatsAppButton extends StatelessWidget {
     final uri = Uri.parse('https://wa.me/?text=$message');
 
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo abrir WhatsApp.'),
-          ),
-        );
-      }
+      if (context.mounted) showErrorSnackBar(context, 'No se pudo abrir WhatsApp.');
     }
   }
 }

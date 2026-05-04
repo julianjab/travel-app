@@ -8,6 +8,7 @@ import 'package:vamos/data/models/member.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/features/members/application/members_notifier.dart';
 import 'package:vamos/features/trips/application/my_trips_notifier.dart';
+import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 // ---------------------------------------------------------------------------
 // Avatar color palette — deterministic from alias initial
@@ -49,9 +50,7 @@ class MembersScreen extends ConsumerWidget {
     final currentUserId = ref.watch(currentUserIdProvider);
 
     return membersAsync.when(
-      loading: () => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      loading: () => const VamosLoadingIndicator(),
       error: (error, _) => _ErrorState(error: error.toString()),
       data: (members) {
         // Determine if the current user is the facilitator. We need the trip

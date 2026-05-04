@@ -55,4 +55,12 @@ class MockTripRepository implements TripRepository {
     final trip = _trips.where((t) => t.id == tripId).firstOrNull;
     return Stream.value(trip);
   }
+
+  /// Archives a trip in the in-memory store by marking its status.
+  ///
+  /// In the mock, this is a no-op — the status field is not mutated because
+  /// [Trip] is immutable and the mock does not push new stream events.
+  /// Tests that need to verify archive behavior should override this method.
+  @override
+  Future<void> archiveTrip(String tripId) async {}
 }

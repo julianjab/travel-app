@@ -57,6 +57,15 @@ class FirestoreTripRepository implements TripRepository {
     return tripRef.id;
   }
 
+  /// Sets the trip's status field to "archived".
+  ///
+  /// Firestore security rules enforce that only the facilitator may write this
+  /// field. Callers are responsible for confirming before calling.
+  @override
+  Future<void> archiveTrip(String tripId) async {
+    await _trips.doc(tripId).update({'status': 'archived'});
+  }
+
   // ---------------------------------------------------------------------------
   // Read
   // ---------------------------------------------------------------------------

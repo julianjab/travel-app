@@ -6,6 +6,8 @@ import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/features/trips/application/my_trips_notifier.dart';
 import 'package:vamos/features/trips/presentation/widgets/trip_card.dart';
+import 'package:vamos/shared/widgets/empty_state.dart';
+import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 /// F1.1 — "Mis viajes" home screen.
 ///
@@ -23,10 +25,17 @@ class MyTripsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: _buildAppBar(context),
       body: tripsAsync.when(
-        loading: () => const _LoadingState(),
+        loading: () => const VamosLoadingIndicator(),
         error: (error, stack) => _ErrorState(error: error),
         data: (trips) => trips.isEmpty
-            ? const _EmptyState()
+            ? VamosEmptyState(
+                // Exact copy from docs/06-identidad-y-tono.md §5.1
+                message:
+                    'Acá no hay nada todavía.\n\nCreá un viaje, o pedile el link a quien ya armó uno.',
+                actionLabel: '+ Nuevo viaje',
+                onAction: () => context.push('/trips/new'),
+                icon: Icons.travel_explore_outlined,
+              )
             : _TripList(trips: trips),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -56,15 +65,6 @@ class MyTripsScreen extends ConsumerWidget {
 // States
 // ---------------------------------------------------------------------------
 
-class _LoadingState extends StatelessWidget {
-  const _LoadingState();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: CircularProgressIndicator());
-  }
-}
-
 class _ErrorState extends StatelessWidget {
   const _ErrorState({required this.error});
   final Object error;
@@ -74,37 +74,26 @@ class _ErrorState extends StatelessWidget {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(VamosSpacing.xl),
-        child: Text(
-          'No se pudo cargar tus viajes. Verificá tu conexión.',
-          style: VamosTypography.bodyMedium.copyWith(color: VamosColors.red),
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-}
-
-/// Empty state using the exact copy from `docs/06-identidad-y-tono.md` §5.1.
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(VamosSpacing.xl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Icon(
+              Icons.error_outline,
+              size: VamosSpacing.xxl,
+              color: VamosColors.red,
+            ),
+            const SizedBox(height: VamosSpacing.md),
             Text(
-              'Acá no hay nada todavía.',
+              'No se pudo cargar tus viajes.',
               style: VamosTypography.titleMedium,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: VamosSpacing.sm),
             Text(
-              'Creá un viaje, o pedile el link a quien ya armó uno.',
-              style: VamosTypography.bodyMedium.copyWith(color: VamosColors.text3),
+              'Verificá tu conexión e intentá de nuevo.',
+              style: VamosTypography.bodyMedium.copyWith(
+                color: VamosColors.text3,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
