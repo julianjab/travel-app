@@ -45,6 +45,25 @@ class FirestoreInviteRepository implements InviteRepository {
   /// Retries up to 3 times on code collision (document already exists).
   /// Throws [StateError] if all 3 attempts fail (should never happen in
   /// practice given 729M possible codes).
+  // ---------------------------------------------------------------------------
+  // Read
+  // ---------------------------------------------------------------------------
+
+  /// Reads `invites/{code}` and returns the trip ID, or null if missing/inactive.
+  @override
+  Future<String?> getTripId(String code) async {
+    final snap = await _invites.doc(code).get();
+    if (!snap.exists) return null;
+    final data = snap.data()!;
+    final isActive = data['active'] as bool? ?? false;
+    if (!isActive) return null;
+    return data['tripId'] as String?;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Write
+  // ---------------------------------------------------------------------------
+
   @override
   Future<String> create(String tripId, String createdBy) async {
     const maxRetries = 3;
