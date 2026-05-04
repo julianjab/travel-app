@@ -138,7 +138,9 @@ class JoinTripNotifier
         if (_onboarding.budget.isNotEmpty) 'budget': _onboarding.budget,
       };
 
-      // 3. Atomically write memberIds arrayUnion + member doc.
+      // 3. Atomically write memberIds arrayUnion + memberAliases entry +
+      //    member doc. memberRepo.joinTrip handles the transaction — the
+      //    denormalized alias on the trip doc (X-11) is updated there.
       final member = Member(
         userId: userId,
         alias: _onboarding.alias,
