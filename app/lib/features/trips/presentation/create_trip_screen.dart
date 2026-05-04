@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
+import 'package:vamos/core/utils/date_formatters.dart';
 import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/features/trips/application/create_trip_notifier.dart';
@@ -54,7 +54,7 @@ class _CreateTripScreenState extends ConsumerState<CreateTripScreen> {
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'Elegir fecha';
-    return DateFormat('d MMM yyyy', 'es').format(date);
+    return formatShortDate(date);
   }
 
   Future<void> _pickStartDate() async {
@@ -143,12 +143,11 @@ class _CreateTripScreenState extends ConsumerState<CreateTripScreen> {
               // ----------------------------------------------------------------
               // Nombre del viaje
               // ----------------------------------------------------------------
-              Text('Nombre del viaje', style: VamosTypography.bodyMedium),
+              Text('Nombre del viaje', style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: VamosSpacing.xs),
               TextFormField(
                 controller: _nameController,
                 textCapitalization: TextCapitalization.sentences,
-                style: VamosTypography.bodyLarge,
                 decoration: const InputDecoration(
                   hintText: 'Brasil con los del barrio',
                 ),
@@ -159,12 +158,11 @@ class _CreateTripScreenState extends ConsumerState<CreateTripScreen> {
               // ----------------------------------------------------------------
               // Destino
               // ----------------------------------------------------------------
-              Text('Destino', style: VamosTypography.bodyMedium),
+              Text('Destino', style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: VamosSpacing.xs),
               TextFormField(
                 controller: _destinationController,
                 textCapitalization: TextCapitalization.words,
-                style: VamosTypography.bodyLarge,
                 decoration: const InputDecoration(
                   hintText: 'Río de Janeiro',
                 ),
@@ -175,7 +173,7 @@ class _CreateTripScreenState extends ConsumerState<CreateTripScreen> {
               // ----------------------------------------------------------------
               // Fechas
               // ----------------------------------------------------------------
-              Text('Fechas', style: VamosTypography.bodyMedium),
+              Text('Fechas', style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: VamosSpacing.xs),
               Row(
                 children: [
@@ -298,6 +296,8 @@ class _DateButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isEmpty = label == 'Elegir fecha';
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -306,16 +306,16 @@ class _DateButton extends StatelessWidget {
           vertical: VamosSpacing.sm + VamosSpacing.xs, // 12
         ),
         decoration: BoxDecoration(
-          color: VamosColors.surface,
+          color: colorScheme.surface,
           borderRadius: VamosRadius.brMd,
-          border: Border.all(color: VamosColors.border),
+          border: Border.all(color: colorScheme.outline),
         ),
         child: Text(
           label,
           style: VamosTypography.monoMedium.copyWith(
-            color: label == 'Elegir fecha'
-                ? VamosColors.textMuted
-                : VamosColors.text,
+            color: isEmpty
+                ? colorScheme.onSurface.withValues(alpha: 0.38)
+                : colorScheme.onSurface,
           ),
           textAlign: TextAlign.center,
         ),

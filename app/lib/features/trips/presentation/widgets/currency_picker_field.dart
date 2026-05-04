@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_spacing.dart';
-import 'package:vamos/core/theme/vamos_typography.dart';
 
 /// A labeled dropdown that lets the user pick the trip's main currency.
 ///
@@ -44,10 +42,12 @@ class CurrencyPickerField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Moneda principal', style: VamosTypography.bodyMedium),
+        Text('Moneda principal', style: textTheme.bodyMedium),
         const SizedBox(height: VamosSpacing.xs),
         Container(
           padding: const EdgeInsets.symmetric(
@@ -55,23 +55,23 @@ class CurrencyPickerField extends StatelessWidget {
             vertical: VamosSpacing.xs,
           ),
           decoration: BoxDecoration(
-            color: VamosColors.surface,
+            color: colorScheme.surface,
             borderRadius: VamosRadius.brMd,
-            border: Border.all(color: VamosColors.border),
+            border: Border.all(color: colorScheme.outline),
           ),
           child: DropdownButton<String>(
             value: value,
             onChanged: onChanged,
             isExpanded: true,
-            underline: const SizedBox.shrink(), // hide the default underline
-            style: VamosTypography.bodyLarge.copyWith(color: VamosColors.text),
-            dropdownColor: VamosColors.surface,
+            underline: const SizedBox.shrink(),
+            style: textTheme.bodyLarge,
+            dropdownColor: colorScheme.surface,
             borderRadius: VamosRadius.brMd,
             items: _currencies
                 .map(
                   (c) => DropdownMenuItem(
                     value: c.code,
-                    child: Text(c.label, style: VamosTypography.bodyLarge),
+                    child: Text(c.label, style: textTheme.bodyLarge),
                   ),
                 )
                 .toList(),
@@ -80,7 +80,7 @@ class CurrencyPickerField extends StatelessWidget {
         const SizedBox(height: VamosSpacing.xs),
         Text(
           'La moneda no se puede cambiar después de crear el viaje.',
-          style: VamosTypography.caption,
+          style: textTheme.bodySmall,
         ),
       ],
     );

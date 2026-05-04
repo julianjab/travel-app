@@ -15,6 +15,17 @@ final authStateProvider = StreamProvider<User?>((ref) {
   return ref.watch(authRepositoryProvider).authStateChanges();
 });
 
+/// Derives a simple boolean from [authStateProvider].
+///
+/// Overrideable in dev/test mode so the router can be driven without
+/// a real Firebase instance (e.g. `main_dev.dart`).
+final isAuthenticatedProvider = Provider<bool>((ref) {
+  return ref.watch(authStateProvider).maybeWhen(
+    data: (user) => user != null,
+    orElse: () => false,
+  );
+});
+
 // ---------------------------------------------------------------------------
 // Sign-in / sign-out actions
 // ---------------------------------------------------------------------------

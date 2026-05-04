@@ -4,6 +4,7 @@ import 'package:vamos/app.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/dev/mocks/mock_trip_repository.dart';
 import 'package:vamos/dev/mocks/trip_fixtures.dart';
+import 'package:vamos/features/auth/application/auth_notifier.dart';
 import 'package:vamos/features/trips/application/my_trips_notifier.dart';
 
 /// Development entry point — runs the app without Firebase.
@@ -15,22 +16,26 @@ import 'package:vamos/features/trips/application/my_trips_notifier.dart';
 ///   flutter run -t lib/main_dev.dart
 ///
 /// What's active:
-///   - tripRepositoryProvider → MockTripRepository with randomized fake trips
-///   - currentUserIdProvider  → 'user_dev' (treated as authenticated)
+///   - tripRepositoryProvider  → MockTripRepository with randomized fake trips
+///   - currentUserIdProvider   → 'user_dev' (treated as authenticated)
+///   - isAuthenticatedProvider → true (router skips /login, goes straight to /trips)
 ///
 /// What's NOT active:
 ///   - No real Firestore reads/writes
-///   - No Firebase Auth (auth state is faked via currentUserIdProvider)
+///   - No Firebase Auth (auth state is faked via isAuthenticatedProvider)
 ///   - Any feature that calls an UnimplementedError repo (Member, Itinerary,
 ///     Expense) will throw at runtime — add their mock overrides here when
 ///     those flows are being developed.
 void main() {
   // Firebase.initializeApp() is intentionally absent.
-  // Only firestoreProvider + authProvider are skipped; they are not needed
-  // because all repos are overridden below before they are read.
+  // Auth state is faked via isAuthenticatedProvider so the router works
+  // without touching FirebaseAuth (safe on both mobile and web).
   runApp(
     ProviderScope(
       overrides: [
+        // Router uses isAuthenticatedProvider → stays on /trips, never redirects to /login.
+        isAuthenticatedProvider.overrideWith((ref) => true),
+
         // Inject a fake user ID so MyTripsNotifier skips the empty-string path.
         currentUserIdProvider.overrideWithValue('user_dev'),
 
