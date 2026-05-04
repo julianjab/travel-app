@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vamos/core/utils/logger.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/features/auth/application/auth_notifier.dart';
@@ -46,13 +47,11 @@ class MyTripsNotifier extends AutoDisposeStreamNotifier<List<Trip>> {
     final userId = ref.watch(currentUserIdProvider);
 
     if (userId.isEmpty) {
-      // Not authenticated yet (E0-06 pending). Emit an empty list so the
-      // notifier resolves to AsyncValue.data([]) instead of staying stuck
-      // in loading. Stream.empty() closes without emitting, which would
-      // freeze the screen on the loading spinner.
+      log.d('MyTripsNotifier: no authenticated user, emitting empty list');
       return Stream.value(const <Trip>[]);
     }
 
+    log.d('MyTripsNotifier: watching trips for user $userId');
     return ref
         .watch(tripRepositoryProvider)
         .watchUserTrips(userId)

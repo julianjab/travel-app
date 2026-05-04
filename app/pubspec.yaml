@@ -50,6 +50,9 @@ dependencies:
   # Navigation
   go_router: ^15.1.2
 
+  # Logging
+  logger: ^2.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
