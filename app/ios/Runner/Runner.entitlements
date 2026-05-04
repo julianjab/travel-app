@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Universal Links: iOS will fetch https://vamos.app/.well-known/apple-app-site-association
+	     at install time to verify the association before activating deep link routing. -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:vamos.app</string>
+	</array>
+</dict>
+</plist>
