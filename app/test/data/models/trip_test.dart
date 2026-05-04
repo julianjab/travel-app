@@ -73,6 +73,7 @@ void main() {
       expect(map['mainCurrency'], 'COP');
       expect(map['facilitatorId'], 'user_1');
       expect(map['memberIds'], ['user_1', 'user_2']);
+      expect(map['memberAliases'], {'user_1': 'Andrés', 'user_2': 'Mati'});
       expect(map['status'], 'active');
       expect(map['createdBy'], 'user_1');
       expect(map['startDate'], isA<Timestamp>());
@@ -133,6 +134,7 @@ void main() {
       expect(trip.mainCurrency, 'COP');
       expect(trip.facilitatorId, 'user_1');
       expect(trip.memberIds, ['user_1', 'user_2']);
+      expect(trip.memberAliases, {'user_1': 'Andrés', 'user_2': 'Mati'});
       expect(trip.status, 'active');
       expect(trip.createdAt, created);
       expect(trip.createdBy, 'user_1');
@@ -145,6 +147,13 @@ void main() {
         buildData(coverPhotoURL: 'https://example.com/photo.jpg'),
       );
       expect(trip.coverPhotoURL, 'https://example.com/photo.jpg');
+    });
+
+    test('falls back to empty memberAliases when missing (legacy doc)', () {
+      final data = buildData();
+      data.remove('memberAliases');
+      final trip = _reconstructFromMap('trip_legacy', data);
+      expect(trip.memberAliases, isEmpty);
     });
   });
 
@@ -163,6 +172,7 @@ void main() {
       expect(restored.coverPhotoURL, original.coverPhotoURL);
       expect(restored.facilitatorId, original.facilitatorId);
       expect(restored.memberIds, original.memberIds);
+      expect(restored.memberAliases, original.memberAliases);
       expect(restored.status, original.status);
       expect(restored.createdAt, original.createdAt);
       expect(restored.createdBy, original.createdBy);
