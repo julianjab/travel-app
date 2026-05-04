@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 /// Mirrors the `trips/{tripId}/members/{userId}` Firestore document.
 ///
 /// See `docs/05-modelo-datos-2.md` §2.2 for the canonical schema.
@@ -21,6 +23,26 @@ class Member {
   final Map<String, dynamic> tags;
 
   final DateTime joinedAt;
+
+  // ---------------------------------------------------------------------------
+  // Serialization
+  // ---------------------------------------------------------------------------
+
+  /// Serializes to a Firestore-compatible map for writing
+  /// `trips/{tripId}/members/{userId}`.
+  ///
+  /// The document ID ([userId]) is NOT included — it lives as the document key.
+  Map<String, dynamic> toFirestore() {
+    return {
+      'alias': alias,
+      'tags': tags,
+      'joinedAt': Timestamp.fromDate(joinedAt),
+    };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Equality / copy
+  // ---------------------------------------------------------------------------
 
   Member copyWith({
     String? userId,
