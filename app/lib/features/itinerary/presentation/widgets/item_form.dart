@@ -180,6 +180,7 @@ class _ItemFormState extends State<ItemForm> {
             Text('Día', style: VamosTypography.caption),
             const SizedBox(height: VamosSpacing.xs),
             DropdownButtonFormField<DateTime>(
+              // ignore: deprecated_member_use
               value: _selectedDay,
               decoration: const InputDecoration(),
               items: tripDays.map((day) {
@@ -205,6 +206,7 @@ class _ItemFormState extends State<ItemForm> {
             ),
             const SizedBox(height: VamosSpacing.xs),
             DropdownButtonFormField<String?>(
+              // ignore: deprecated_member_use
               value: _selectedTime,
               decoration: const InputDecoration(),
               items: [
