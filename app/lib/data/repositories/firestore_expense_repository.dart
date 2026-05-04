@@ -7,9 +7,8 @@ import 'package:vamos/data/repositories/expense_repository.dart';
 /// Firestore implementation of [ExpenseRepository].
 ///
 /// This is the ONLY file in the app that imports `cloud_firestore` for
-/// expenses. Skeleton: methods throw [UnimplementedError] until F3.x
-/// implements the expenses flow. The interface is in place so that notifiers
-/// can depend on [ExpenseRepository] without coupling to Firebase.
+/// expenses. All reads and writes go through the abstract [ExpenseRepository]
+/// interface — notifiers and widgets never reference this class directly.
 class FirestoreExpenseRepository implements ExpenseRepository {
   const FirestoreExpenseRepository(this._firestore);
 
@@ -18,12 +17,23 @@ class FirestoreExpenseRepository implements ExpenseRepository {
   CollectionReference<Map<String, dynamic>> _expenses(String tripId) =>
       _firestore.collection('trips').doc(tripId).collection('expenses');
 
+  CollectionReference<Map<String, dynamic>> _settlements(String tripId) =>
+      _firestore.collection('trips').doc(tripId).collection('settlements');
+
   @override
   Stream<List<Expense>> watchTripExpenses(String tripId) {
-    // TODO(F3-x): implement when the expenses flow is built.
-    // ignore: unused_local_variable
-    final col = _expenses(tripId);
-    throw UnimplementedError('watchTripExpenses is not yet implemented');
+    return _expenses(tripId)
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => Expense.fromFirestore(
+                  doc as DocumentSnapshot<Map<String, dynamic>>,
+                ),
+              )
+              .toList(),
+        );
   }
 
   @override
@@ -31,8 +41,8 @@ class FirestoreExpenseRepository implements ExpenseRepository {
     required String tripId,
     required Expense expense,
   }) async {
-    // TODO(F3-x): implement when the expenses flow is built.
-    throw UnimplementedError('createExpense is not yet implemented');
+    final docRef = _expenses(tripId).doc(expense.id);
+    await docRef.set(expense.toMap());
   }
 
   @override
@@ -40,8 +50,7 @@ class FirestoreExpenseRepository implements ExpenseRepository {
     required String tripId,
     required Expense expense,
   }) async {
-    // TODO(F3-x): implement when the expenses flow is built.
-    throw UnimplementedError('updateExpense is not yet implemented');
+    await _expenses(tripId).doc(expense.id).set(expense.toMap());
   }
 
   @override
@@ -49,8 +58,26 @@ class FirestoreExpenseRepository implements ExpenseRepository {
     required String tripId,
     required String expenseId,
   }) async {
-    // TODO(F3-x): implement when the expenses flow is built.
-    throw UnimplementedError('deleteExpense is not yet implemented');
+    await _expenses(tripId).doc(expenseId).delete();
+  }
+
+  @override
+  Future<void> createSettlement({
+    required String tripId,
+    required String fromUserId,
+    required String toUserId,
+    required double amount,
+    required String currency,
+    required String createdBy,
+  }) async {
+    await _settlements(tripId).add({
+      'from': fromUserId,
+      'to': toUserId,
+      'amount': amount,
+      'currency': currency,
+      'createdAt': FieldValue.serverTimestamp(),
+      'createdBy': createdBy,
+    });
   }
 }
 
