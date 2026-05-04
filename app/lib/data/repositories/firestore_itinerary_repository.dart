@@ -21,6 +21,8 @@ class FirestoreItineraryRepository implements ItineraryRepository {
   @override
   Stream<List<ItineraryItem>> watchTripItems(String tripId) {
     // TODO(F2-x): implement when the itinerary flow is built.
+    // ignore: unused_local_variable
+    final col = _items(tripId);
     throw UnimplementedError('watchTripItems is not yet implemented');
   }
 

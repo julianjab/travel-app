@@ -66,7 +66,7 @@ class VamosLogo extends StatelessWidget {
                     width: dotSize * 0.78,
                     height: size * 0.05,
                     decoration: BoxDecoration(
-                      color: dot.withOpacity(0.28),
+                      color: dot.withValues(alpha: 0.28),
                       borderRadius: BorderRadius.circular(size),
                     ),
                   ),

@@ -5,6 +5,11 @@ import 'package:vamos/features/auth/application/auth_notifier.dart';
 import 'package:vamos/features/auth/presentation/login_screen.dart';
 import 'package:vamos/features/trips/presentation/create_trip_screen.dart';
 import 'package:vamos/features/trips/presentation/invite_screen.dart';
+import 'package:vamos/features/trips/presentation/join_alias_screen.dart';
+import 'package:vamos/features/trips/presentation/join_entry_screen.dart';
+import 'package:vamos/features/trips/presentation/join_profile_screen.dart';
+import 'package:vamos/features/trips/presentation/join_tags_screen.dart';
+import 'package:vamos/features/trip_shell/presentation/trip_shell_screen.dart';
 import 'package:vamos/features/trips/presentation/my_trips_screen.dart';
 
 // ---------------------------------------------------------------------------
@@ -45,7 +50,8 @@ class _RouterNotifier extends ChangeNotifier {
 ///   /trips                    → [MyTripsScreen]  (authenticated home, F1.1)
 ///   /trips/new                → [CreateTripScreen] (create trip form, F1.2)
 ///   /trips/:id/invite         → [InviteScreen]   (success + share link, F1.3)
-///   /trips/:id                → stub for F2.1
+///   /trips/:id                → [TripShellScreen] (F1.7 / F4.1)
+///   /join/:code               → join onboarding flow (F1.4–F1.6)
 final routerProvider = Provider<GoRouter>((ref) {
   final notifier = _RouterNotifier(ref);
   final goRouter = GoRouter(
@@ -73,12 +79,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'new',
             builder: (context, state) => const CreateTripScreen(),
           ),
-          // TODO(F2-01): replace stub with TripShellScreen when F2.1 is built.
+          // F1.7 / F4.1 — Trip shell with Itinerario, Gastos, Gente tabs.
           GoRoute(
             path: ':id',
             builder: (context, state) {
               final tripId = state.pathParameters['id']!;
-              return _StubScreen(title: 'Viaje $tripId');
+              return TripShellScreen(tripId: tripId);
             },
             routes: [
               // F1.3 — Success + invite-link screen.
@@ -93,6 +99,40 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+
+      // -----------------------------------------------------------------------
+      // Join flow — F1.4 to F1.6 (deep link entry: /join/:code)
+      // -----------------------------------------------------------------------
+      GoRoute(
+        path: '/join/:code',
+        builder: (context, state) {
+          final code = state.pathParameters['code']!;
+          return JoinEntryScreen(inviteCode: code);
+        },
+        routes: [
+          GoRoute(
+            path: 'profile',
+            builder: (context, state) {
+              final code = state.pathParameters['code']!;
+              return JoinProfileScreen(inviteCode: code);
+            },
+          ),
+          GoRoute(
+            path: 'alias',
+            builder: (context, state) {
+              final code = state.pathParameters['code']!;
+              return JoinAliasScreen(inviteCode: code);
+            },
+          ),
+          GoRoute(
+            path: 'tags',
+            builder: (context, state) {
+              final code = state.pathParameters['code']!;
+              return JoinTagsScreen(inviteCode: code);
+            },
+          ),
+        ],
+      ),
     ],
   );
 
@@ -103,29 +143,3 @@ final routerProvider = Provider<GoRouter>((ref) {
 
   return goRouter;
 });
-
-// ---------------------------------------------------------------------------
-// Stub screen — temporary placeholder until flow screens are built
-// ---------------------------------------------------------------------------
-
-/// Temporary screen shown for routes that are not yet implemented.
-/// Remove route by route as screens are added to the app.
-class _StubScreen extends StatelessWidget {
-  const _StubScreen({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-    return Scaffold(
-      appBar: AppBar(title: Text(title)),
-      body: Center(
-        child: Text(
-          'Próximamente',
-          style: text.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
-        ),
-      ),
-    );
-  }
-}
