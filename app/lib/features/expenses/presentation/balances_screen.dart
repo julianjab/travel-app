@@ -122,6 +122,7 @@ class _BalancesBody extends StatelessWidget {
                   final balance = balances[uid] ?? 0.0;
                   return _BalanceRow(
                     uid: uid,
+                    alias: _aliasFor(uid, trip.memberAliases),
                     balance: balance,
                     currency: trip.mainCurrency,
                   );
@@ -186,6 +187,8 @@ class _BalancesBody extends StatelessWidget {
                       children: [
                         _TransferRow(
                           transfer: t,
+                          fromAlias: _aliasFor(t.from, trip.memberAliases),
+                          toAlias: _aliasFor(t.to, trip.memberAliases),
                           currency: trip.mainCurrency,
                           isSettling: isSettling,
                           onSettle: () => onSettle(t),
@@ -217,11 +220,13 @@ class _BalancesBody extends StatelessWidget {
 class _BalanceRow extends StatelessWidget {
   const _BalanceRow({
     required this.uid,
+    required this.alias,
     required this.balance,
     required this.currency,
   });
 
   final String uid;
+  final String alias;
   final double balance;
   final String currency;
 
@@ -254,7 +259,7 @@ class _BalanceRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_shortenId(uid), style: VamosTypography.bodyMedium),
+                Text(alias, style: VamosTypography.bodyMedium),
                 Text(statusLabel, style: VamosTypography.overline),
               ],
             ),
@@ -267,9 +272,15 @@ class _BalanceRow extends StatelessWidget {
       ),
     );
   }
+}
 
-  String _shortenId(String uid) =>
-      uid.length > 16 ? uid.substring(0, 16) : uid;
+/// Returns the denormalized alias for [uid] from [aliases] (X-11). Falls back
+/// to a shortened uid when the entry is missing — keeps the screen readable
+/// for legacy trips created before the migration.
+String _aliasFor(String uid, Map<String, String> aliases) {
+  final alias = aliases[uid];
+  if (alias != null && alias.trim().isNotEmpty) return alias.trim();
+  return uid.length > 16 ? uid.substring(0, 16) : uid;
 }
 
 // ---------------------------------------------------------------------------
@@ -279,12 +290,16 @@ class _BalanceRow extends StatelessWidget {
 class _TransferRow extends StatelessWidget {
   const _TransferRow({
     required this.transfer,
+    required this.fromAlias,
+    required this.toAlias,
     required this.currency,
     required this.isSettling,
     required this.onSettle,
   });
 
   final Transfer transfer;
+  final String fromAlias;
+  final String toAlias;
   final String currency;
   final bool isSettling;
   final VoidCallback onSettle;
@@ -305,12 +320,12 @@ class _TransferRow extends StatelessWidget {
               text: TextSpan(
                 style: VamosTypography.bodyMedium,
                 children: [
-                  TextSpan(text: _shortenId(transfer.from)),
+                  TextSpan(text: fromAlias),
                   const TextSpan(
                     text: ' le debe a ',
                     style: TextStyle(color: VamosColors.text3),
                   ),
-                  TextSpan(text: _shortenId(transfer.to)),
+                  TextSpan(text: toAlias),
                   const TextSpan(text: ': '),
                   TextSpan(
                     text: amountStr,
@@ -344,9 +359,6 @@ class _TransferRow extends StatelessWidget {
       ),
     );
   }
-
-  String _shortenId(String uid) =>
-      uid.length > 14 ? uid.substring(0, 14) : uid;
 }
 
 // ---------------------------------------------------------------------------
