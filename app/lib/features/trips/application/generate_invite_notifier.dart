@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vamos/data/repositories/firestore_invite_repository.dart';
-import 'package:vamos/features/auth/application/auth_notifier.dart';
+import 'package:vamos/features/trips/application/my_trips_notifier.dart';
 
 // ---------------------------------------------------------------------------
 // Notifier
