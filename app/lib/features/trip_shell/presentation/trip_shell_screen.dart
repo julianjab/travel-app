@@ -1,0 +1,126 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vamos/core/theme/vamos_colors.dart';
+import 'package:vamos/core/theme/vamos_spacing.dart';
+import 'package:vamos/core/theme/vamos_typography.dart';
+import 'package:vamos/data/repositories/firestore_trip_repository.dart';
+import 'package:vamos/features/members/presentation/members_screen.dart';
+
+// ---------------------------------------------------------------------------
+// Trip name stream provider (family) — scoped to this file
+// ---------------------------------------------------------------------------
+
+final _tripNameProvider =
+    StreamProvider.autoDispose.family<String, String>((ref, tripId) {
+  return ref
+      .watch(tripRepositoryProvider)
+      .watchById(tripId)
+      .map((trip) => trip?.name ?? '');
+});
+
+// ---------------------------------------------------------------------------
+// Trip shell screen
+// ---------------------------------------------------------------------------
+
+/// Tabbed container for the in-trip views: Itinerario, Gastos, Gente.
+///
+/// Renders a bottom [TabBar] with three tabs. The first two (Itinerario, Gastos)
+/// are stubs that will be replaced by F2 and F3. The third tab renders the live
+/// [MembersScreen].
+///
+/// The AppBar title streams the trip name from Firestore, showing "Cargando..."
+/// while the snapshot is not yet available.
+class TripShellScreen extends ConsumerStatefulWidget {
+  const TripShellScreen({super.key, required this.tripId});
+
+  final String tripId;
+
+  @override
+  ConsumerState<TripShellScreen> createState() => _TripShellScreenState();
+}
+
+class _TripShellScreenState extends ConsumerState<TripShellScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tripNameAsync = ref.watch(_tripNameProvider(widget.tripId));
+    final tripName = tripNameAsync.maybeWhen(
+      data: (name) => name.isNotEmpty ? name : 'Cargando...',
+      orElse: () => 'Cargando...',
+    );
+
+    return Scaffold(
+      backgroundColor: VamosColors.bg,
+      appBar: AppBar(
+        backgroundColor: VamosColors.surface,
+        surfaceTintColor: Colors.transparent,
+        title: Text(
+          tripName,
+          style: VamosTypography.headlineMedium,
+        ),
+        bottom: TabBar(
+          controller: _tabController,
+          labelStyle: VamosTypography.caption.copyWith(
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.2,
+          ),
+          unselectedLabelStyle: VamosTypography.caption,
+          labelColor: VamosColors.sol500,
+          unselectedLabelColor: VamosColors.text3,
+          indicatorColor: VamosColors.sol500,
+          indicatorWeight: 2,
+          tabs: const [
+            Tab(text: 'Itinerario'),
+            Tab(text: 'Gastos'),
+            Tab(text: 'Gente'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          // F2 — Itinerario (stub until F2.1 is built)
+          _StubTab(label: 'Itinerario'),
+          // F3 — Gastos (stub until F3.1 is built)
+          _StubTab(label: 'Gastos'),
+          // F4.1 — Miembros (live)
+          MembersScreen(tripId: widget.tripId),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Stub tab — placeholder for F2 and F3
+// ---------------------------------------------------------------------------
+
+class _StubTab extends StatelessWidget {
+  const _StubTab({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        'Próximamente — $label',
+        style: VamosTypography.bodyMedium,
+      ),
+    );
+  }
+}
