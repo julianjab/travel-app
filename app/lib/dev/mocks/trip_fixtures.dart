@@ -89,6 +89,7 @@ abstract class TripFixtures {
       mainCurrency: _pick(_currencies),
       facilitatorId: members.first,
       memberIds: members,
+      memberAliases: _aliasesFor(members),
       status: 'active',
       createdAt: now.subtract(Duration(days: daysAgo + 10)),
       createdBy: members.first,
@@ -111,6 +112,7 @@ abstract class TripFixtures {
       mainCurrency: _pick(_currencies),
       facilitatorId: members.first,
       memberIds: members,
+      memberAliases: _aliasesFor(members),
       status: 'active',
       createdAt: now.subtract(const Duration(days: 7)),
       createdBy: members.first,
@@ -133,6 +135,7 @@ abstract class TripFixtures {
       mainCurrency: _pick(_currencies),
       facilitatorId: members.first,
       memberIds: members,
+      memberAliases: _aliasesFor(members),
       status: 'active',
       createdAt: now.subtract(Duration(days: daysAgo + 40)),
       createdBy: members.first,
@@ -168,6 +171,23 @@ abstract class TripFixtures {
   static List<String> _pickMembers() {
     final shuffled = List<String>.from(_userIds)..shuffle(_rng);
     return shuffled.take(_rng.nextInt(5) + 2).toList(); // 2–6 members
+  }
+
+  /// Builds a `userId -> alias` map from a list of fixture user IDs.
+  ///
+  /// The fixtures use IDs like `user_ana`, `user_carlos` — we strip the
+  /// `user_` prefix and capitalize the first letter to produce a readable
+  /// alias like "Ana", "Carlos".
+  static Map<String, String> _aliasesFor(List<String> ids) {
+    return {
+      for (final id in ids)
+        id: _humanize(id.startsWith('user_') ? id.substring(5) : id),
+    };
+  }
+
+  static String _humanize(String raw) {
+    if (raw.isEmpty) return raw;
+    return raw[0].toUpperCase() + raw.substring(1);
   }
 }
 
