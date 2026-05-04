@@ -42,9 +42,7 @@ class ItemDetailScreen extends ConsumerWidget {
     });
 
     return Scaffold(
-      backgroundColor: VamosColors.bg,
       appBar: AppBar(
-        backgroundColor: VamosColors.surface,
         surfaceTintColor: Colors.transparent,
         title: Text(
           item.title,

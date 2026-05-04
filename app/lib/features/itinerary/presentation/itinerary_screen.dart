@@ -31,7 +31,6 @@ class ItineraryScreen extends ConsumerWidget {
     final itemsAsync = ref.watch(itineraryProvider(tripId));
 
     return Scaffold(
-      backgroundColor: VamosColors.bg,
       floatingActionButton: FloatingActionButton(
         backgroundColor: VamosColors.sol500,
         foregroundColor: VamosColors.textOnDark,

@@ -44,9 +44,7 @@ class BalancesScreen extends ConsumerWidget {
     });
 
     return Scaffold(
-      backgroundColor: VamosColors.bg,
       appBar: AppBar(
-        backgroundColor: VamosColors.surface,
         surfaceTintColor: Colors.transparent,
         title: Text('Saldos del viaje', style: VamosTypography.headlineMedium),
       ),
@@ -111,12 +109,6 @@ class _BalancesBody extends StatelessWidget {
           const SizedBox(height: VamosSpacing.sm),
           Card(
             margin: EdgeInsets.zero,
-            shape: const RoundedRectangleBorder(
-              borderRadius: VamosRadius.brLg,
-              side: BorderSide(color: VamosColors.border),
-            ),
-            elevation: 0,
-            color: VamosColors.surface,
             child: Padding(
               padding: const EdgeInsets.all(VamosSpacing.md),
               child: Column(
@@ -147,12 +139,6 @@ class _BalancesBody extends StatelessWidget {
           if (transfers.isEmpty)
             Card(
               margin: EdgeInsets.zero,
-              shape: const RoundedRectangleBorder(
-                borderRadius: VamosRadius.brLg,
-                side: BorderSide(color: VamosColors.border),
-              ),
-              elevation: 0,
-              color: VamosColors.surface,
               child: Padding(
                 padding: const EdgeInsets.all(VamosSpacing.md),
                 child: Row(
@@ -184,12 +170,6 @@ class _BalancesBody extends StatelessWidget {
           else
             Card(
               margin: EdgeInsets.zero,
-              shape: const RoundedRectangleBorder(
-                borderRadius: VamosRadius.brLg,
-                side: BorderSide(color: VamosColors.border),
-              ),
-              elevation: 0,
-              color: VamosColors.surface,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: VamosSpacing.xs),
                 child: Column(

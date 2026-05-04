@@ -6,7 +6,7 @@
       "fields": [
         { "fieldPath": "memberIds", "arrayConfig": "CONTAINS" },
         { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "startDate", "order": "DESCENDING" }
+        { "fieldPath": "startDate", "order": "ASCENDING" }
       ]
     },
     {

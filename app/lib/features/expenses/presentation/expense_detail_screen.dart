@@ -52,9 +52,7 @@ class ExpenseDetailScreen extends ConsumerWidget {
         currentUserId == expense.createdBy;
 
     return Scaffold(
-      backgroundColor: VamosColors.bg,
       appBar: AppBar(
-        backgroundColor: VamosColors.surface,
         surfaceTintColor: Colors.transparent,
         title: Text(
           expense.description?.isNotEmpty == true
@@ -144,10 +142,6 @@ class ExpenseDetailScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: VamosColors.surface,
-        shape: const RoundedRectangleBorder(
-          borderRadius: VamosRadius.brDialog,
-        ),
         title: Text('¿Eliminar gasto?', style: VamosTypography.titleMedium),
         content: Text(
           'Esta acción no se puede deshacer. El gasto se va a eliminar para todo el grupo.',
@@ -194,12 +188,6 @@ class _InfoCard extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
-      shape: const RoundedRectangleBorder(
-        borderRadius: VamosRadius.brLg,
-        side: BorderSide(color: VamosColors.border),
-      ),
-      elevation: 0,
-      color: VamosColors.surface,
       child: Padding(
         padding: const EdgeInsets.all(VamosSpacing.md),
         child: Column(
@@ -256,12 +244,6 @@ class _SplitCard extends StatelessWidget {
 
     return Card(
       margin: EdgeInsets.zero,
-      shape: const RoundedRectangleBorder(
-        borderRadius: VamosRadius.brLg,
-        side: BorderSide(color: VamosColors.border),
-      ),
-      elevation: 0,
-      color: VamosColors.surface,
       child: Padding(
         padding: const EdgeInsets.all(VamosSpacing.md),
         child: Column(
@@ -321,12 +303,6 @@ class _EditHistoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.zero,
-      shape: const RoundedRectangleBorder(
-        borderRadius: VamosRadius.brLg,
-        side: BorderSide(color: VamosColors.border),
-      ),
-      elevation: 0,
-      color: VamosColors.surface,
       child: Padding(
         padding: const EdgeInsets.all(VamosSpacing.md),
         child: Column(
@@ -372,10 +348,10 @@ class _WarningBanner extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: VamosSpacing.md),
       padding: const EdgeInsets.all(VamosSpacing.md),
-      decoration: const BoxDecoration(
-        color: VamosColors.surface2,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: VamosRadius.brLg,
-        border: Border.fromBorderSide(
+        border: const Border.fromBorderSide(
           BorderSide(color: VamosColors.warning),
         ),
       ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/data/models/trip.dart';
@@ -91,9 +90,7 @@ class _TripShellScreenState extends ConsumerState<TripShellScreen>
     });
 
     return Scaffold(
-      backgroundColor: VamosColors.bg,
       appBar: AppBar(
-        backgroundColor: VamosColors.surface,
         surfaceTintColor: Colors.transparent,
         title: Text(
           tripName,
@@ -123,9 +120,9 @@ class _TripShellScreenState extends ConsumerState<TripShellScreen>
             letterSpacing: 0.2,
           ),
           unselectedLabelStyle: VamosTypography.caption,
-          labelColor: VamosColors.sol500,
-          unselectedLabelColor: VamosColors.text3,
-          indicatorColor: VamosColors.sol500,
+          labelColor: Theme.of(context).colorScheme.primary,
+          unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
+          indicatorColor: Theme.of(context).colorScheme.primary,
           indicatorWeight: 2,
           tabs: const [
             Tab(text: 'Itinerario'),

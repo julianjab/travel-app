@@ -177,12 +177,6 @@ class _MemberCard extends StatelessWidget {
     final tags = _buildTagLabels(member.tags);
 
     return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: const BorderRadius.all(Radius.circular(14)), // VamosRadius.lg
-        side: BorderSide(color: VamosColors.border),
-      ),
-      color: VamosColors.surface,
       child: Padding(
         padding: const EdgeInsets.all(VamosSpacing.md),
         child: Row(
@@ -299,20 +293,21 @@ class _AvatarInitial extends StatelessWidget {
 class _FacilitatorChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: VamosSpacing.sm,
         vertical: VamosSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: VamosColors.sol50,
-        borderRadius: const BorderRadius.all(Radius.circular(9999)), // brFull
-        border: Border.all(color: VamosColors.sol300),
+        color: cs.primaryContainer,
+        borderRadius: const BorderRadius.all(Radius.circular(9999)),
+        border: Border.all(color: cs.primary.withValues(alpha: 0.4)),
       ),
       child: Text(
         'facilitador',
         style: VamosTypography.overline.copyWith(
-          color: VamosColors.sol600,
+          color: cs.onPrimaryContainer,
           letterSpacing: 0.5,
         ),
       ),
@@ -331,19 +326,20 @@ class _TagChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: VamosSpacing.sm,
         vertical: VamosSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: VamosColors.surface2,
-        borderRadius: const BorderRadius.all(Radius.circular(9999)), // brFull
-        border: Border.all(color: VamosColors.border),
+        color: cs.surfaceContainerHighest,
+        borderRadius: const BorderRadius.all(Radius.circular(9999)),
+        border: Border.all(color: cs.outline),
       ),
       child: Text(
         label,
-        style: VamosTypography.caption,
+        style: VamosTypography.caption.copyWith(color: cs.onSurface),
       ),
     );
   }

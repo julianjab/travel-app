@@ -443,28 +443,6 @@ InputDecoration _inputDecoration(String hint, {String? helper}) {
     hintStyle: VamosTypography.bodyMedium.copyWith(color: VamosColors.textMuted),
     helperText: helper,
     helperStyle: VamosTypography.caption,
-    filled: true,
-    fillColor: VamosColors.surface,
-    border: const OutlineInputBorder(
-      borderRadius: VamosRadius.brMd,
-      borderSide: BorderSide(color: VamosColors.border),
-    ),
-    enabledBorder: const OutlineInputBorder(
-      borderRadius: VamosRadius.brMd,
-      borderSide: BorderSide(color: VamosColors.border),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: VamosRadius.brMd,
-      borderSide: const BorderSide(color: VamosColors.sol500, width: 2),
-    ),
-    errorBorder: const OutlineInputBorder(
-      borderRadius: VamosRadius.brMd,
-      borderSide: BorderSide(color: VamosColors.red),
-    ),
-    focusedErrorBorder: const OutlineInputBorder(
-      borderRadius: VamosRadius.brMd,
-      borderSide: BorderSide(color: VamosColors.red, width: 2),
-    ),
     contentPadding: const EdgeInsets.symmetric(
       horizontal: VamosSpacing.md,
       vertical: VamosSpacing.sm,
@@ -494,9 +472,9 @@ class _CurrencyDropdown extends StatelessWidget {
         vertical: VamosSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: VamosColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: VamosRadius.brMd,
-        border: Border.all(color: VamosColors.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: DropdownButton<String>(
         value: _currencies.contains(value) ? value : _currencies.first,
@@ -541,9 +519,9 @@ class _MemberDropdown extends StatelessWidget {
         vertical: VamosSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: VamosColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: VamosRadius.brMd,
-        border: Border.all(color: VamosColors.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: DropdownButton<String>(
         value: safeValue,
@@ -602,9 +580,9 @@ class _DatePickerField extends StatelessWidget {
           vertical: VamosSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: VamosColors.surface,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: VamosRadius.brMd,
-          border: Border.all(color: VamosColors.border),
+          border: Border.all(color: Theme.of(context).colorScheme.outline),
         ),
         child: Row(
           children: [
@@ -637,11 +615,11 @@ class _SplitModeSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return SegmentedButton<_SplitMode>(
       style: SegmentedButton.styleFrom(
-        backgroundColor: VamosColors.bg,
-        selectedBackgroundColor: VamosColors.sol500,
-        selectedForegroundColor: VamosColors.textOnDark,
-        foregroundColor: VamosColors.text3,
-        side: const BorderSide(color: VamosColors.border),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        selectedBackgroundColor: Theme.of(context).colorScheme.primary,
+        selectedForegroundColor: Theme.of(context).colorScheme.onPrimary,
+        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        side: BorderSide(color: Theme.of(context).colorScheme.outline),
         shape: const RoundedRectangleBorder(
           borderRadius: VamosRadius.brMd,
         ),

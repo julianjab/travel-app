@@ -31,7 +31,6 @@ class ExpensesScreen extends ConsumerWidget {
     final expensesAsync = ref.watch(expensesProvider(tripId));
 
     return Scaffold(
-      backgroundColor: VamosColors.bg,
       // No AppBar here — it lives in TripShellScreen.
       // Actions are provided via the shell but we surface the balances nav
       // as a floating text button at the top for simplicity within the tab.
@@ -160,12 +159,6 @@ class _ExpenseCard extends StatelessWidget {
         ),
         child: Card(
           margin: EdgeInsets.zero,
-          shape: const RoundedRectangleBorder(
-            borderRadius: VamosRadius.brLg,
-            side: BorderSide(color: VamosColors.border),
-          ),
-          elevation: 0,
-          color: VamosColors.surface,
           child: Padding(
             padding: const EdgeInsets.all(VamosSpacing.md),
             child: Row(
@@ -176,8 +169,8 @@ class _ExpenseCard extends StatelessWidget {
                     horizontal: VamosSpacing.sm,
                     vertical: VamosSpacing.xs,
                   ),
-                  decoration: const BoxDecoration(
-                    color: VamosColors.bg,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
                     borderRadius: VamosRadius.brMd,
                   ),
                   child: Text(dateStr, style: VamosTypography.overline),
