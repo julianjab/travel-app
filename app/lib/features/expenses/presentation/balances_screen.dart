@@ -10,6 +10,7 @@ import 'package:vamos/features/expenses/application/expense_actions_notifier.dar
 import 'package:vamos/features/expenses/application/expenses_notifier.dart';
 import 'package:vamos/features/expenses/domain/balance_calculator.dart';
 import 'package:vamos/features/trips/application/my_trips_notifier.dart';
+import 'package:vamos/shared/widgets/error_state.dart';
 import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 /// F3-10/F3-11 — Balances screen.
@@ -44,15 +45,18 @@ class BalancesScreen extends ConsumerWidget {
     });
 
     return Scaffold(
-      backgroundColor: VamosColors.bg,
       appBar: AppBar(
-        backgroundColor: VamosColors.surface,
         surfaceTintColor: Colors.transparent,
         title: Text('Saldos del viaje', style: VamosTypography.headlineMedium),
       ),
       body: expensesAsync.when(
         loading: () => const VamosLoadingIndicator(),
-        error: (err, _) => _ErrorState(
+        error: (err, st) => VamosErrorState(
+          title: 'No se pudieron cargar los saldos.',
+          message: 'Verificá tu conexión e intentá de nuevo.',
+          error: err,
+          stackTrace: st,
+          debugLabel: 'BalancesScreen',
           onRetry: () => ref.invalidate(expensesProvider(tripId)),
         ),
         data: (expenses) => _BalancesBody(
@@ -111,12 +115,6 @@ class _BalancesBody extends StatelessWidget {
           const SizedBox(height: VamosSpacing.sm),
           Card(
             margin: EdgeInsets.zero,
-            shape: const RoundedRectangleBorder(
-              borderRadius: VamosRadius.brLg,
-              side: BorderSide(color: VamosColors.border),
-            ),
-            elevation: 0,
-            color: VamosColors.surface,
             child: Padding(
               padding: const EdgeInsets.all(VamosSpacing.md),
               child: Column(
@@ -124,6 +122,7 @@ class _BalancesBody extends StatelessWidget {
                   final balance = balances[uid] ?? 0.0;
                   return _BalanceRow(
                     uid: uid,
+                    alias: _aliasFor(uid, trip.memberAliases),
                     balance: balance,
                     currency: trip.mainCurrency,
                   );
@@ -147,12 +146,6 @@ class _BalancesBody extends StatelessWidget {
           if (transfers.isEmpty)
             Card(
               margin: EdgeInsets.zero,
-              shape: const RoundedRectangleBorder(
-                borderRadius: VamosRadius.brLg,
-                side: BorderSide(color: VamosColors.border),
-              ),
-              elevation: 0,
-              color: VamosColors.surface,
               child: Padding(
                 padding: const EdgeInsets.all(VamosSpacing.md),
                 child: Row(
@@ -184,12 +177,6 @@ class _BalancesBody extends StatelessWidget {
           else
             Card(
               margin: EdgeInsets.zero,
-              shape: const RoundedRectangleBorder(
-                borderRadius: VamosRadius.brLg,
-                side: BorderSide(color: VamosColors.border),
-              ),
-              elevation: 0,
-              color: VamosColors.surface,
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: VamosSpacing.xs),
                 child: Column(
@@ -200,6 +187,8 @@ class _BalancesBody extends StatelessWidget {
                       children: [
                         _TransferRow(
                           transfer: t,
+                          fromAlias: _aliasFor(t.from, trip.memberAliases),
+                          toAlias: _aliasFor(t.to, trip.memberAliases),
                           currency: trip.mainCurrency,
                           isSettling: isSettling,
                           onSettle: () => onSettle(t),
@@ -231,11 +220,13 @@ class _BalancesBody extends StatelessWidget {
 class _BalanceRow extends StatelessWidget {
   const _BalanceRow({
     required this.uid,
+    required this.alias,
     required this.balance,
     required this.currency,
   });
 
   final String uid;
+  final String alias;
   final double balance;
   final String currency;
 
@@ -268,7 +259,7 @@ class _BalanceRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(_shortenId(uid), style: VamosTypography.bodyMedium),
+                Text(alias, style: VamosTypography.bodyMedium),
                 Text(statusLabel, style: VamosTypography.overline),
               ],
             ),
@@ -281,9 +272,15 @@ class _BalanceRow extends StatelessWidget {
       ),
     );
   }
+}
 
-  String _shortenId(String uid) =>
-      uid.length > 16 ? uid.substring(0, 16) : uid;
+/// Returns the denormalized alias for [uid] from [aliases] (X-11). Falls back
+/// to a shortened uid when the entry is missing — keeps the screen readable
+/// for legacy trips created before the migration.
+String _aliasFor(String uid, Map<String, String> aliases) {
+  final alias = aliases[uid];
+  if (alias != null && alias.trim().isNotEmpty) return alias.trim();
+  return uid.length > 16 ? uid.substring(0, 16) : uid;
 }
 
 // ---------------------------------------------------------------------------
@@ -293,12 +290,16 @@ class _BalanceRow extends StatelessWidget {
 class _TransferRow extends StatelessWidget {
   const _TransferRow({
     required this.transfer,
+    required this.fromAlias,
+    required this.toAlias,
     required this.currency,
     required this.isSettling,
     required this.onSettle,
   });
 
   final Transfer transfer;
+  final String fromAlias;
+  final String toAlias;
   final String currency;
   final bool isSettling;
   final VoidCallback onSettle;
@@ -319,12 +320,12 @@ class _TransferRow extends StatelessWidget {
               text: TextSpan(
                 style: VamosTypography.bodyMedium,
                 children: [
-                  TextSpan(text: _shortenId(transfer.from)),
+                  TextSpan(text: fromAlias),
                   const TextSpan(
                     text: ' le debe a ',
                     style: TextStyle(color: VamosColors.text3),
                   ),
-                  TextSpan(text: _shortenId(transfer.to)),
+                  TextSpan(text: toAlias),
                   const TextSpan(text: ': '),
                   TextSpan(
                     text: amountStr,
@@ -358,57 +359,9 @@ class _TransferRow extends StatelessWidget {
       ),
     );
   }
-
-  String _shortenId(String uid) =>
-      uid.length > 14 ? uid.substring(0, 14) : uid;
 }
 
 // ---------------------------------------------------------------------------
 // Error state
 // ---------------------------------------------------------------------------
 
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry});
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(VamosSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: VamosSpacing.xxl,
-              color: VamosColors.red,
-            ),
-            const SizedBox(height: VamosSpacing.md),
-            Text(
-              'No se pudieron cargar los saldos.',
-              style: VamosTypography.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: VamosSpacing.sm),
-            Text(
-              'Verificá tu conexión e intentá de nuevo.',
-              style: VamosTypography.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: VamosSpacing.lg),
-            OutlinedButton(
-              onPressed: onRetry,
-              style: OutlinedButton.styleFrom(
-                shape: const RoundedRectangleBorder(
-                  borderRadius: VamosRadius.brFull,
-                ),
-              ),
-              child: const Text('Intentá de nuevo'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

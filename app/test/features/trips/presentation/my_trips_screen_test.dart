@@ -83,6 +83,7 @@ Trip _makeTrip({
     mainCurrency: 'COP',
     facilitatorId: 'user_1',
     memberIds: const ['user_1'],
+    memberAliases: const {'user_1': 'Andrés'},
     status: 'active',
     createdAt: now.subtract(const Duration(days: 30)),
     createdBy: 'user_1',

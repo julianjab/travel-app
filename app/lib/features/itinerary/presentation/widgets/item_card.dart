@@ -26,12 +26,6 @@ class ItemCard extends StatelessWidget {
     final isConfirmed = item.status == 'confirmed';
 
     return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: VamosRadius.brLg,
-        side: const BorderSide(color: VamosColors.border),
-      ),
-      color: VamosColors.surface,
       child: InkWell(
         borderRadius: VamosRadius.brLg,
         onTap: onTap,

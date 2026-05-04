@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -26,17 +27,23 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<UserCredential> signInWithGoogle() async {
-    // Trigger the Google Authentication flow.
+    if (kIsWeb) {
+      // On web, signInWithPopup uses the Firebase project's OAuth config
+      // directly — no manual client ID needed.
+      final provider = GoogleAuthProvider();
+      log.i('Google Sign-In (web): opening popup');
+      return _auth.signInWithPopup(provider);
+    }
+
+    // Mobile: native Google Sign-In flow via the google_sign_in package.
     final googleUser = await GoogleSignIn().signIn();
     if (googleUser == null) {
-      // The user cancelled the sign-in dialog.
       throw FirebaseAuthException(
         code: 'sign-in-cancelled',
         message: 'El inicio de sesión con Google fue cancelado.',
       );
     }
 
-    // Obtain the Google auth credentials.
     final googleAuth = await googleUser.authentication;
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,

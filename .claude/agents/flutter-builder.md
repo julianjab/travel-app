@@ -39,7 +39,11 @@ No `ChangeNotifier`, no `StateNotifier`, no Bloc, no GetX.
 
 ## Design system — Vamos Design Kit
 
+**Before writing or editing any widget, invoke the `/design-system` skill.** It is the canonical reference card for tokens and theme-aware patterns. The summary below is a quick reminder; the skill is the source of truth.
+
 Token files live in `lib/core/theme/`. Every visual value comes from a token — never a raw number.
+
+Critical: the app uses `ThemeMode.system`, so widgets MUST be theme-aware. Never use light-only tokens (`VamosColors.bg`, `VamosColors.surface`, `VamosColors.surface2`, `VamosColors.border`) directly — use `Theme.of(context).colorScheme.*` instead. Never set `backgroundColor` on `Scaffold`, `AppBar`, or `Card` — `VamosTheme` handles them.
 
 ```
 vamos_colors.dart      → VamosColors.X

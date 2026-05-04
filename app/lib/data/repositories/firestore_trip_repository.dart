@@ -46,8 +46,19 @@ class FirestoreTripRepository implements TripRepository {
       joinedAt: trip.createdAt,
     );
 
+    // Seed the denormalized memberAliases map with the facilitator entry so
+    // the UI can render their initial/name immediately. The notifier may have
+    // already filled this in [trip.memberAliases], but we re-seed defensively
+    // to guarantee the invariant `memberAliases.size() == memberIds.size()`.
+    final tripWithAlias = trip.copyWith(
+      memberAliases: {
+        ...trip.memberAliases,
+        trip.facilitatorId: facilitatorAlias,
+      },
+    );
+
     final batch = _firestore.batch();
-    batch.set(tripRef, trip.toFirestore());
+    batch.set(tripRef, tripWithAlias.toFirestore());
     batch.set(
       tripRef.collection('members').doc(trip.facilitatorId),
       facilitatorMember.toFirestore(),
@@ -55,6 +66,39 @@ class FirestoreTripRepository implements TripRepository {
 
     await batch.commit();
     return tripRef.id;
+  }
+
+  /// Atomically adds a new member to [tripId].
+  ///
+  /// Updates the parent trip doc (`memberIds` arrayUnion + `memberAliases.uid`)
+  /// and writes the member subdoc in a single Firestore transaction so the
+  /// invariant `memberAliases.size() == memberIds.size()` always holds.
+  ///
+  /// See `MemberRepository.joinTrip` for the invite-validated equivalent used
+  /// during onboarding — this lower-level method is the building block.
+  @override
+  Future<void> addMember({
+    required String tripId,
+    required String userId,
+    required String alias,
+    Map<String, dynamic> tags = const {},
+  }) async {
+    await _firestore.runTransaction((tx) async {
+      final tripRef = _trips.doc(tripId);
+      final memberRef =
+          tripRef.collection('members').doc(userId);
+
+      tx.update(tripRef, {
+        'memberIds': FieldValue.arrayUnion([userId]),
+        'memberAliases.$userId': alias,
+      });
+
+      tx.set(memberRef, {
+        'alias': alias,
+        'tags': tags,
+        'joinedAt': FieldValue.serverTimestamp(),
+      });
+    });
   }
 
   /// Sets the trip's status field to "archived".

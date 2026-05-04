@@ -92,14 +92,21 @@ class FirestoreMemberRepository implements MemberRepository {
     final isActive = inviteSnap.data()?['active'] as bool? ?? false;
     if (!isActive) throw const InviteLinkInactiveException();
 
-    // Step 2 — atomic write: memberIds arrayUnion + member doc.
+    // Step 2 — atomic write: memberIds arrayUnion + memberAliases entry +
+    // member doc. The denormalized `memberAliases.{userId}` (X-11) keeps the
+    // invariant `memberAliases.size() == memberIds.size()` and lets the UI
+    // render names without paying extra reads to the subcollection.
     await _firestore.runTransaction((tx) async {
       final tripRef = _trip(tripId);
       final memberRef = _members(tripId).doc(member.userId);
 
       // arrayUnion is safe even if the uid is already present (idempotent).
+      // Dot notation (`memberAliases.${uid}`) updates only that key, leaving
+      // the rest of the map untouched — required by the security rule that
+      // forbids mutating other users' aliases.
       tx.update(tripRef, {
         'memberIds': FieldValue.arrayUnion([member.userId]),
+        'memberAliases.${member.userId}': member.alias,
       });
 
       tx.set(memberRef, member.toFirestore());

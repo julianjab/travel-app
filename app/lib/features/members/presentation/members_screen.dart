@@ -8,6 +8,7 @@ import 'package:vamos/data/models/member.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/features/members/application/members_notifier.dart';
 import 'package:vamos/features/trips/application/my_trips_notifier.dart';
+import 'package:vamos/shared/widgets/error_state.dart';
 import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 // ---------------------------------------------------------------------------
@@ -51,7 +52,14 @@ class MembersScreen extends ConsumerWidget {
 
     return membersAsync.when(
       loading: () => const VamosLoadingIndicator(),
-      error: (error, _) => _ErrorState(error: error.toString()),
+      error: (error, st) => VamosErrorState(
+        title: 'No se pudo cargar la lista.',
+        message: 'Revisá tu conexión e intentá de nuevo.',
+        error: error,
+        stackTrace: st,
+        debugLabel: 'MembersScreen',
+        onRetry: () => ref.invalidate(membersProvider(tripId)),
+      ),
       data: (members) {
         // Determine if the current user is the facilitator. We need the trip
         // doc for the facilitatorId — fall back to false while loading.
@@ -177,12 +185,6 @@ class _MemberCard extends StatelessWidget {
     final tags = _buildTagLabels(member.tags);
 
     return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: const BorderRadius.all(Radius.circular(14)), // VamosRadius.lg
-        side: BorderSide(color: VamosColors.border),
-      ),
-      color: VamosColors.surface,
       child: Padding(
         padding: const EdgeInsets.all(VamosSpacing.md),
         child: Row(
@@ -299,20 +301,21 @@ class _AvatarInitial extends StatelessWidget {
 class _FacilitatorChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: VamosSpacing.sm,
         vertical: VamosSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: VamosColors.sol50,
-        borderRadius: const BorderRadius.all(Radius.circular(9999)), // brFull
-        border: Border.all(color: VamosColors.sol300),
+        color: cs.primaryContainer,
+        borderRadius: const BorderRadius.all(Radius.circular(9999)),
+        border: Border.all(color: cs.primary.withValues(alpha: 0.4)),
       ),
       child: Text(
         'facilitador',
         style: VamosTypography.overline.copyWith(
-          color: VamosColors.sol600,
+          color: cs.onPrimaryContainer,
           letterSpacing: 0.5,
         ),
       ),
@@ -331,19 +334,20 @@ class _TagChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: VamosSpacing.sm,
         vertical: VamosSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: VamosColors.surface2,
-        borderRadius: const BorderRadius.all(Radius.circular(9999)), // brFull
-        border: Border.all(color: VamosColors.border),
+        color: cs.surfaceContainerHighest,
+        borderRadius: const BorderRadius.all(Radius.circular(9999)),
+        border: Border.all(color: cs.outline),
       ),
       child: Text(
         label,
-        style: VamosTypography.caption,
+        style: VamosTypography.caption.copyWith(color: cs.onSurface),
       ),
     );
   }
@@ -394,41 +398,3 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Error state
-// ---------------------------------------------------------------------------
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.error});
-
-  final String error;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(VamosSpacing.xl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: VamosColors.red,
-            size: VamosSpacing.xxxl,
-          ),
-          const SizedBox(height: VamosSpacing.md),
-          Text(
-            'No se pudo cargar la lista.',
-            style: VamosTypography.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: VamosSpacing.sm),
-          Text(
-            'Revisá tu conexión e intentá de nuevo.',
-            style: VamosTypography.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}

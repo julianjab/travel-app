@@ -37,7 +37,7 @@ You review code already written in Vamos. Your guiding question is: **"Is this d
 
 ### Design system tokens (hard rule)
 
-The project uses the **Vamos Design Kit** (`lib/core/theme/vamos_*.dart`). Any raw value bypassing the kit is a blocking issue.
+The project uses the **Vamos Design Kit** (`lib/core/theme/vamos_*.dart`). Any raw value bypassing the kit is a blocking issue. Invoke the `/design-system` skill for the full reference card and self-check grep block.
 
 - `Color(0xFF...)` or `Colors.blue` in widget? → **blocking**. Must use `VamosColors.<token>` or `Theme.of(context).colorScheme.<role>`.
 - `EdgeInsets.all(N)` or `SizedBox(height: N)` with raw number? → **blocking**. Must use `VamosSpacing.<step>`.
@@ -46,6 +46,8 @@ The project uses the **Vamos Design Kit** (`lib/core/theme/vamos_*.dart`). Any r
 - Mono font (`JetBrainsMono`) used for non-data UI text? → **blocking**. Mono is only for amounts, dates, IDs, overlines.
 - `ThemeData(...)` or `Theme(data: ..., child: ...)` outside `vamos_theme.dart`? → **blocking**.
 - Raw number used instead of adding it to the token scale? → **blocking** (add to `VamosSpacing`, `VamosRadius`, or `VamosColors` instead).
+- `backgroundColor:` set on `Scaffold`, `AppBar`, or `Card`? → **blocking**. `VamosTheme` handles them; explicit overrides break dark mode.
+- Light-only token (`VamosColors.bg`, `surface`, `surface2`, `border`) used directly in a widget? → **blocking**. Must use `Theme.of(context).colorScheme.*` for theme-aware colors.
 
 ### Money handling (hard rule)
 - Any `double` in code touching money? → **blocking**. Must be `Decimal`.

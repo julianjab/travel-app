@@ -341,6 +341,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
             const SizedBox(height: VamosSpacing.xs),
             _MemberDropdown(
               memberIds: widget.trip.memberIds,
+              memberAliases: widget.trip.memberAliases,
               value: _paidBy,
               onChanged: (v) {
                 if (v != null) setState(() => _paidBy = v);
@@ -370,6 +371,7 @@ class _ExpenseFormState extends State<ExpenseForm> {
             _SplitDetail(
               mode: _splitMode,
               memberIds: widget.trip.memberIds,
+              memberAliases: widget.trip.memberAliases,
               included: _included,
               memberCtrl: _memberCtrl,
               onIncludedChanged: (uid, v) =>
@@ -443,28 +445,6 @@ InputDecoration _inputDecoration(String hint, {String? helper}) {
     hintStyle: VamosTypography.bodyMedium.copyWith(color: VamosColors.textMuted),
     helperText: helper,
     helperStyle: VamosTypography.caption,
-    filled: true,
-    fillColor: VamosColors.surface,
-    border: const OutlineInputBorder(
-      borderRadius: VamosRadius.brMd,
-      borderSide: BorderSide(color: VamosColors.border),
-    ),
-    enabledBorder: const OutlineInputBorder(
-      borderRadius: VamosRadius.brMd,
-      borderSide: BorderSide(color: VamosColors.border),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: VamosRadius.brMd,
-      borderSide: const BorderSide(color: VamosColors.sol500, width: 2),
-    ),
-    errorBorder: const OutlineInputBorder(
-      borderRadius: VamosRadius.brMd,
-      borderSide: BorderSide(color: VamosColors.red),
-    ),
-    focusedErrorBorder: const OutlineInputBorder(
-      borderRadius: VamosRadius.brMd,
-      borderSide: BorderSide(color: VamosColors.red, width: 2),
-    ),
     contentPadding: const EdgeInsets.symmetric(
       horizontal: VamosSpacing.md,
       vertical: VamosSpacing.sm,
@@ -494,9 +474,9 @@ class _CurrencyDropdown extends StatelessWidget {
         vertical: VamosSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: VamosColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: VamosRadius.brMd,
-        border: Border.all(color: VamosColors.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: DropdownButton<String>(
         value: _currencies.contains(value) ? value : _currencies.first,
@@ -524,11 +504,13 @@ class _CurrencyDropdown extends StatelessWidget {
 class _MemberDropdown extends StatelessWidget {
   const _MemberDropdown({
     required this.memberIds,
+    required this.memberAliases,
     required this.value,
     required this.onChanged,
   });
 
   final List<String> memberIds;
+  final Map<String, String> memberAliases;
   final String value;
   final ValueChanged<String?> onChanged;
 
@@ -541,9 +523,9 @@ class _MemberDropdown extends StatelessWidget {
         vertical: VamosSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: VamosColors.surface,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: VamosRadius.brMd,
-        border: Border.all(color: VamosColors.border),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: DropdownButton<String>(
         value: safeValue,
@@ -557,7 +539,7 @@ class _MemberDropdown extends StatelessWidget {
               (uid) => DropdownMenuItem(
                 value: uid,
                 child: Text(
-                  _shortenId(uid),
+                  _aliasFor(uid, memberAliases),
                   style: VamosTypography.bodyLarge,
                 ),
               ),
@@ -566,9 +548,15 @@ class _MemberDropdown extends StatelessWidget {
       ),
     );
   }
+}
 
-  String _shortenId(String uid) =>
-      uid.length > 12 ? uid.substring(0, 12) : uid;
+/// Returns the denormalized alias for [uid], falling back to a shortened uid
+/// for legacy trips without `memberAliases` (X-11). Keeps the form readable
+/// even when the trip doc was created before the migration.
+String _aliasFor(String uid, Map<String, String> aliases) {
+  final alias = aliases[uid];
+  if (alias != null && alias.trim().isNotEmpty) return alias.trim();
+  return uid.length > 12 ? uid.substring(0, 12) : uid;
 }
 
 // ---------------------------------------------------------------------------
@@ -602,9 +590,9 @@ class _DatePickerField extends StatelessWidget {
           vertical: VamosSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: VamosColors.surface,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: VamosRadius.brMd,
-          border: Border.all(color: VamosColors.border),
+          border: Border.all(color: Theme.of(context).colorScheme.outline),
         ),
         child: Row(
           children: [
@@ -637,11 +625,11 @@ class _SplitModeSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     return SegmentedButton<_SplitMode>(
       style: SegmentedButton.styleFrom(
-        backgroundColor: VamosColors.bg,
-        selectedBackgroundColor: VamosColors.sol500,
-        selectedForegroundColor: VamosColors.textOnDark,
-        foregroundColor: VamosColors.text3,
-        side: const BorderSide(color: VamosColors.border),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        selectedBackgroundColor: Theme.of(context).colorScheme.primary,
+        selectedForegroundColor: Theme.of(context).colorScheme.onPrimary,
+        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        side: BorderSide(color: Theme.of(context).colorScheme.outline),
         shape: const RoundedRectangleBorder(
           borderRadius: VamosRadius.brMd,
         ),
@@ -677,6 +665,7 @@ class _SplitDetail extends StatelessWidget {
   const _SplitDetail({
     required this.mode,
     required this.memberIds,
+    required this.memberAliases,
     required this.included,
     required this.memberCtrl,
     required this.onIncludedChanged,
@@ -684,6 +673,7 @@ class _SplitDetail extends StatelessWidget {
 
   final _SplitMode mode;
   final List<String> memberIds;
+  final Map<String, String> memberAliases;
   final Map<String, bool> included;
   final Map<String, TextEditingController> memberCtrl;
   final void Function(String uid, bool value) onIncludedChanged;
@@ -706,10 +696,10 @@ class _SplitDetail extends StatelessWidget {
                   onChanged: (v) => onIncludedChanged(uid, v ?? false),
                 ),
               ),
-              // Member label
+              // Member label — uses denormalized alias (X-11), fallback to uid.
               Expanded(
                 child: Text(
-                  _shortenId(uid),
+                  _aliasFor(uid, memberAliases),
                   style: VamosTypography.bodyMedium,
                 ),
               ),
@@ -743,7 +733,4 @@ class _SplitDetail extends StatelessWidget {
       }).toList(),
     );
   }
-
-  String _shortenId(String uid) =>
-      uid.length > 16 ? uid.substring(0, 16) : uid;
 }

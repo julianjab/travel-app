@@ -15,6 +15,7 @@ class Trip {
     required this.mainCurrency,
     required this.facilitatorId,
     required this.memberIds,
+    required this.memberAliases,
     required this.status,
     required this.createdAt,
     required this.createdBy,
@@ -35,6 +36,17 @@ class Trip {
 
   /// Denormalized list of member user IDs for Firestore array-contains queries.
   final List<String> memberIds;
+
+  /// Denormalized lookup `userId -> alias` for the UI.
+  ///
+  /// Avoids paying N reads to `trips/{tripId}/members/{userId}` just to render
+  /// names in TripCard, expense_form, balances. The authoritative alias still
+  /// lives in the subcollection — this map is a name-only projection
+  /// maintained atomically alongside [memberIds].
+  ///
+  /// Invariant: `memberAliases.length == memberIds.length` and every uid in
+  /// [memberIds] appears as a key. See `docs/05-modelo-datos-2.md` §2.2.
+  final Map<String, String> memberAliases;
 
   /// "active" | "archived"
   final String status;
@@ -59,6 +71,9 @@ class Trip {
       coverPhotoURL: data['coverPhotoURL'] as String?,
       facilitatorId: data['facilitatorId'] as String,
       memberIds: List<String>.from(data['memberIds'] as List),
+      memberAliases: Map<String, String>.from(
+        (data['memberAliases'] as Map?) ?? const <String, String>{},
+      ),
       status: data['status'] as String,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       createdBy: data['createdBy'] as String,
@@ -77,6 +92,7 @@ class Trip {
       if (coverPhotoURL != null) 'coverPhotoURL': coverPhotoURL,
       'facilitatorId': facilitatorId,
       'memberIds': memberIds,
+      'memberAliases': memberAliases,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'createdBy': createdBy,
@@ -98,6 +114,7 @@ class Trip {
     bool clearCoverPhoto = false,
     String? facilitatorId,
     List<String>? memberIds,
+    Map<String, String>? memberAliases,
     String? status,
     DateTime? createdAt,
     String? createdBy,
@@ -112,6 +129,7 @@ class Trip {
       coverPhotoURL: clearCoverPhoto ? null : (coverPhotoURL ?? this.coverPhotoURL),
       facilitatorId: facilitatorId ?? this.facilitatorId,
       memberIds: memberIds ?? this.memberIds,
+      memberAliases: memberAliases ?? this.memberAliases,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       createdBy: createdBy ?? this.createdBy,
@@ -132,6 +150,7 @@ class Trip {
           coverPhotoURL == other.coverPhotoURL &&
           facilitatorId == other.facilitatorId &&
           memberIds == other.memberIds &&
+          memberAliases == other.memberAliases &&
           status == other.status &&
           createdAt == other.createdAt &&
           createdBy == other.createdBy;
@@ -147,6 +166,7 @@ class Trip {
         coverPhotoURL,
         facilitatorId,
         memberIds,
+        memberAliases,
         status,
         createdAt,
         createdBy,

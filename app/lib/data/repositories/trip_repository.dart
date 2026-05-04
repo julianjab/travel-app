@@ -34,4 +34,25 @@ abstract class TripRepository {
   /// Only the facilitator may call this action. Authorization is enforced by
   /// Firestore security rules — the repository does not re-check it.
   Future<void> archiveTrip(String tripId);
+
+  /// Atomically registers [userId] as a new trip member.
+  ///
+  /// In a single transaction:
+  ///   - `arrayUnion` [userId] into `trips/{tripId}.memberIds`
+  ///   - Set `trips/{tripId}.memberAliases.{userId}` to [alias]
+  ///   - Write `trips/{tripId}/members/{userId}` with [alias], [tags] and
+  ///     [joinedAt] as `serverTimestamp`-equivalent (the repository fills it).
+  ///
+  /// The denormalized `memberAliases` map keeps `_MemberPills`, expense_form
+  /// and balances rendering names without paying extra reads to the
+  /// subcollection.
+  ///
+  /// See `docs/05-modelo-datos-2.md` §2.2 for the invariant
+  /// `memberAliases.size() == memberIds.size()`.
+  Future<void> addMember({
+    required String tripId,
+    required String userId,
+    required String alias,
+    Map<String, dynamic> tags = const {},
+  });
 }

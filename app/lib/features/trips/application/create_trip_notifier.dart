@@ -111,6 +111,7 @@ class CreateTripNotifier extends AutoDisposeAsyncNotifier<CreateTripResult> {
         coverPhotoURL: coverPhotoURL,
         facilitatorId: userId,
         memberIds: [userId], // facilitator must be in memberIds from the start
+        memberAliases: {userId: displayName}, // X-11: seed alias for the UI
         status: 'active',
         createdAt: now,
         createdBy: userId,

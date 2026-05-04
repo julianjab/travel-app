@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/core/utils/snackbar_utils.dart';
 import 'package:vamos/data/models/itinerary_item.dart';
@@ -41,9 +40,7 @@ class EditItemScreen extends ConsumerWidget {
     });
 
     return Scaffold(
-      backgroundColor: VamosColors.bg,
       appBar: AppBar(
-        backgroundColor: VamosColors.surface,
         surfaceTintColor: Colors.transparent,
         title: Text('Editar item', style: VamosTypography.headlineMedium),
       ),

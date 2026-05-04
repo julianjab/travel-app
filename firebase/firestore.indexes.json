@@ -6,12 +6,12 @@
       "fields": [
         { "fieldPath": "memberIds", "arrayConfig": "CONTAINS" },
         { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "startDate", "order": "DESCENDING" }
+        { "fieldPath": "startDate", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "items",
-      "queryScope": "COLLECTION_GROUP",
+      "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "day", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "ASCENDING" }
@@ -19,7 +19,7 @@
     },
     {
       "collectionGroup": "expenses",
-      "queryScope": "COLLECTION_GROUP",
+      "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "date", "order": "DESCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }

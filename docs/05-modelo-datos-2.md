@@ -51,6 +51,7 @@ mainCurrency: string             ← ISO 4217: "COP", "BRL", "USD"
 coverPhotoURL: string?
 facilitatorId: string            ← userId del facilitador actual
 memberIds: array<string>         ← denormalizado, ver §3.1
+memberAliases: map<string,string> ← lookup uid → alias para UI sin lecturas extra (X-11)
 status: string                   ← "active" | "archived"
 createdAt: timestamp
 createdBy: string
@@ -69,6 +70,17 @@ joinedAt: timestamp
 ```
 
 El `userId` es el ID del documento, no un campo. `displayName` y `photoURL` no se duplican — viven en `users/{userId}` y la app hace lookup.
+
+**Sobre `memberAliases` en el doc del trip (X-11):**
+
+Se denormaliza un `Map<userId, alias>` en `trips/{tripId}.memberAliases` para que la UI pueda renderizar nombres (TripCard, expense_form, balances) sin pagar N lecturas extra a la subcolección `members/`.
+
+- El `alias` autoritativo sigue viviendo en `trips/{tripId}/members/{userId}.alias`.
+- `memberAliases` es una **proyección de solo nombre** mantenida atómicamente junto con `memberIds`: cuando un usuario entra (o el facilitador crea el viaje), se escribe en la misma transacción `arrayUnion(memberIds, uid)` + `memberAliases.{uid} = alias` + el doc en `members/`.
+- Invariante: `memberAliases.size() == memberIds.size()` y cada uid en `memberIds` aparece como key.
+- Las reglas permiten a cada usuario escribir SOLO su propia entrada en `memberAliases` (no la de otros).
+- No se usa un array de `[{id, name}]` porque `array-contains` solo matchea valores exactos: la query `where('members', arrayContains: {id, name})` se rompería al cambiar el alias.
+- Editar el alias post-join no está en MVP (queda como mejora futura).
 
 #### `trips/{tripId}/items/{itemId}`
 

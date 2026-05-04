@@ -1,5 +1,4 @@
-import 'dart:io' show Platform;
-
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
@@ -40,8 +39,9 @@ class LoginScreen extends ConsumerWidget {
       );
     });
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: VamosColors.bg,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: VamosSpacing.lg),
@@ -59,7 +59,7 @@ class LoginScreen extends ConsumerWidget {
               Text(
                 'Viajá con tu gente',
                 style: VamosTypography.bodyMedium.copyWith(
-                  color: VamosColors.text3,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
 
@@ -80,13 +80,13 @@ class LoginScreen extends ConsumerWidget {
               const SizedBox(height: VamosSpacing.md),
 
               // Apple Sign-In button (iOS only)
-              if (Platform.isIOS) ...[
+              if (defaultTargetPlatform == TargetPlatform.iOS) ...[
                 _SignInButton(
                   label: 'Continuar con Apple',
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.apple,
                     size: 22,
-                    color: VamosColors.text,
+                    color: colorScheme.onSurface,
                   ),
                   onPressed: isLoading
                       ? null
@@ -99,16 +99,16 @@ class LoginScreen extends ConsumerWidget {
 
               // Loading indicator
               if (isLoading)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: VamosSpacing.md),
-                  child: CircularProgressIndicator(),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: VamosSpacing.md),
+                  child: CircularProgressIndicator(color: colorScheme.primary),
                 ),
 
               // Terms note
               Text(
                 'Al continuar aceptás los términos de uso.',
                 style: VamosTypography.caption.copyWith(
-                  color: VamosColors.textMuted,
+                  color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -150,6 +150,7 @@ class _SignInButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
@@ -157,8 +158,8 @@ class _SignInButton extends StatelessWidget {
         label: Text(label),
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          foregroundColor: VamosColors.text,
-          side: const BorderSide(color: VamosColors.border),
+          foregroundColor: colorScheme.onSurface,
+          side: BorderSide(color: colorScheme.outline),
           padding: const EdgeInsets.symmetric(vertical: VamosSpacing.md),
           textStyle: VamosTypography.titleMedium,
           shape: const RoundedRectangleBorder(
@@ -175,13 +176,13 @@ class _SignInButton extends StatelessWidget {
 class _GoogleIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Text(
+    return Text(
       'G',
       style: TextStyle(
         fontFamily: VamosTypography.fontDisplay,
         fontWeight: FontWeight.w700,
         fontSize: 18,
-        color: VamosColors.sol500,
+        color: Theme.of(context).colorScheme.primary,
       ),
     );
   }

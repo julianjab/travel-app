@@ -10,6 +10,7 @@ import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/itinerary/application/itinerary_notifier.dart';
 import 'package:vamos/features/itinerary/presentation/widgets/item_card.dart';
 import 'package:vamos/shared/widgets/empty_state.dart';
+import 'package:vamos/shared/widgets/error_state.dart';
 import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 /// F2.1 — Itinerary list grouped by day.
@@ -31,7 +32,6 @@ class ItineraryScreen extends ConsumerWidget {
     final itemsAsync = ref.watch(itineraryProvider(tripId));
 
     return Scaffold(
-      backgroundColor: VamosColors.bg,
       floatingActionButton: FloatingActionButton(
         backgroundColor: VamosColors.sol500,
         foregroundColor: VamosColors.textOnDark,
@@ -40,7 +40,12 @@ class ItineraryScreen extends ConsumerWidget {
       ),
       body: itemsAsync.when(
         loading: () => const VamosLoadingIndicator(),
-        error: (e, _) => _ErrorState(tripId: tripId, trip: trip),
+        error: (e, st) => VamosErrorState(
+          error: e,
+          stackTrace: st,
+          debugLabel: 'ItineraryScreen',
+          onRetry: () => ref.invalidate(itineraryProvider(tripId)),
+        ),
         data: (items) => _ItemsList(
           tripId: tripId,
           trip: trip,
@@ -200,46 +205,3 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Error state
-// ---------------------------------------------------------------------------
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.tripId, required this.trip});
-
-  final String tripId;
-  final Trip trip;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(VamosSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.error_outline,
-              size: VamosSpacing.xxl,
-              color: VamosColors.red,
-            ),
-            const SizedBox(height: VamosSpacing.md),
-            Text(
-              'Algo salió mal.',
-              style: VamosTypography.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: VamosSpacing.sm),
-            Text(
-              'Intentá de nuevo.',
-              style: VamosTypography.bodyMedium.copyWith(
-                color: VamosColors.text3,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
