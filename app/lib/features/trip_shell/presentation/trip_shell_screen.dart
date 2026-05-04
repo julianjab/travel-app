@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
+import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/data/repositories/firestore_trip_repository.dart';
 import 'package:vamos/features/expenses/presentation/expenses_screen.dart';
 import 'package:vamos/features/itinerary/presentation/itinerary_screen.dart';
 import 'package:vamos/features/members/presentation/members_screen.dart';
+import 'package:vamos/features/trips/application/archive_trip_notifier.dart';
+import 'package:vamos/features/trips/application/my_trips_notifier.dart';
 import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 // ---------------------------------------------------------------------------
@@ -58,6 +62,29 @@ class _TripShellScreenState extends ConsumerState<TripShellScreen>
     final tripAsync = ref.watch(_tripProvider(widget.tripId));
     final trip = tripAsync.value;
     final tripName = trip?.name ?? 'Cargando...';
+    final currentUserId = ref.watch(currentUserIdProvider);
+    final isFacilitator = trip?.facilitatorId == currentUserId;
+
+    // Listen for archive success → navigate away; error → SnackBar.
+    ref.listen<AsyncValue<void>>(archiveTripProvider, (prev, next) {
+      next.whenOrNull(
+        data: (_) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Viaje archivado')),
+          );
+          context.go('/trips');
+        },
+        error: (e, _) {
+          if (!context.mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Error al archivar. Intentá de nuevo.'),
+            ),
+          );
+        },
+      );
+    });
 
     return Scaffold(
       backgroundColor: VamosColors.bg,
@@ -68,6 +95,23 @@ class _TripShellScreenState extends ConsumerState<TripShellScreen>
           tripName,
           style: VamosTypography.headlineMedium,
         ),
+        actions: trip != null && isFacilitator
+            ? [
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'archive') {
+                      _showArchiveDialog(context, ref, widget.tripId);
+                    }
+                  },
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(
+                      value: 'archive',
+                      child: Text('Archivar viaje'),
+                    ),
+                  ],
+                ),
+              ]
+            : null,
         bottom: TabBar(
           controller: _tabController,
           labelStyle: VamosTypography.caption.copyWith(
@@ -102,6 +146,42 @@ class _TripShellScreenState extends ConsumerState<TripShellScreen>
         ],
       ),
     );
+  }
+
+  /// Shows the archive confirmation dialog and triggers the action on confirm.
+  Future<void> _showArchiveDialog(
+    BuildContext context,
+    WidgetRef ref,
+    String tripId,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: const RoundedRectangleBorder(borderRadius: VamosRadius.brDialog),
+        title: Text(
+          'Archivar viaje',
+          style: VamosTypography.titleMedium,
+        ),
+        content: Text(
+          '¿Querés archivar este viaje? Ya no va a aparecer en tu lista activa.',
+          style: VamosTypography.bodyMedium,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: const Text('Archivar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      ref.read(archiveTripProvider.notifier).archive(tripId);
+    }
   }
 }
 

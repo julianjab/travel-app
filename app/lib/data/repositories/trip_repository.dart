@@ -28,4 +28,10 @@ abstract class TripRepository {
   ///
   /// Emits null if the document does not exist (e.g., was deleted).
   Stream<Trip?> watchById(String tripId);
+
+  /// Marks a trip as archived by setting its status field to "archived".
+  ///
+  /// Only the facilitator may call this action. Authorization is enforced by
+  /// Firestore security rules — the repository does not re-check it.
+  Future<void> archiveTrip(String tripId);
 }
