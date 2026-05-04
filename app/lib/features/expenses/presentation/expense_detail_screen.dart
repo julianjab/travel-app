@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
+import 'package:vamos/core/utils/snackbar_utils.dart';
 import 'package:vamos/data/models/expense.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/expenses/application/expense_actions_notifier.dart';
@@ -34,13 +35,12 @@ class ExpenseDetailScreen extends ConsumerWidget {
 
     // React to delete success/error.
     ref.listen<AsyncValue<void>>(expenseActionsProvider, (prev, next) {
-      if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al eliminar el gasto. Intentá de nuevo.'),
-          ),
-        );
-      } else if (next.hasValue && prev?.isLoading == true) {
+      next.whenOrNull(
+        error: (e, _) {
+          if (context.mounted) showErrorSnackBar(context);
+        },
+      );
+      if (next.hasValue && prev?.isLoading == true) {
         if (context.mounted) Navigator.of(context).pop();
       }
     });

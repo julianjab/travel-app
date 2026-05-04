@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
+import 'package:vamos/core/utils/snackbar_utils.dart';
 import 'package:vamos/data/models/expense.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/expenses/application/expense_actions_notifier.dart';
@@ -26,13 +27,12 @@ class CreateExpenseScreen extends ConsumerWidget {
     final actionsState = ref.watch(expenseActionsProvider);
 
     ref.listen<AsyncValue<void>>(expenseActionsProvider, (prev, next) {
-      if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al guardar el gasto. Intentá de nuevo.'),
-          ),
-        );
-      } else if (next.hasValue && prev?.isLoading == true) {
+      next.whenOrNull(
+        error: (e, _) {
+          if (context.mounted) showErrorSnackBar(context);
+        },
+      );
+      if (next.hasValue && prev?.isLoading == true) {
         if (context.mounted) Navigator.of(context).pop();
       }
     });

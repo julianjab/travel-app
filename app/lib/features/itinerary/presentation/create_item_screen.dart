@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
+import 'package:vamos/core/utils/snackbar_utils.dart';
 import 'package:vamos/data/models/itinerary_item.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/itinerary/application/item_actions_notifier.dart';
@@ -28,17 +29,17 @@ class CreateItemScreen extends ConsumerWidget {
 
     // Listen for success or error
     ref.listen<AsyncValue<void>>(itemActionsProvider, (prev, next) {
-      if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al guardar. Intentá de nuevo.'),
-          ),
-        );
-      } else if (next.hasValue && prev?.isLoading == true) {
+      next.whenOrNull(
+        error: (e, _) {
+          if (context.mounted) showErrorSnackBar(context);
+        },
+      );
+      if (next.hasValue && prev?.isLoading == true) {
         // Successfully created — pop back
         if (context.mounted) Navigator.of(context).pop();
       }
     });
+
 
     return Scaffold(
       backgroundColor: VamosColors.bg,

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
+import 'package:vamos/core/utils/snackbar_utils.dart';
 import 'package:vamos/data/models/itinerary_item.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/itinerary/application/item_actions_notifier.dart';
@@ -33,13 +34,11 @@ class ItemDetailScreen extends ConsumerWidget {
 
     // Listen for errors on actions
     ref.listen<AsyncValue<void>>(itemActionsProvider, (prev, next) {
-      if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al guardar. Intentá de nuevo.'),
-          ),
-        );
-      }
+      next.whenOrNull(
+        error: (e, _) {
+          if (context.mounted) showErrorSnackBar(context);
+        },
+      );
     });
 
     return Scaffold(
@@ -565,12 +564,9 @@ class _ActionButtons extends ConsumerWidget {
                           item: updated,
                         );
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(isConfirmed
-                              ? 'Item vuelto a propuesto.'
-                              : 'Item confirmado.'),
-                        ),
+                      showSuccessSnackBar(
+                        context,
+                        isConfirmed ? 'Item vuelto a propuesto.' : 'Item confirmado.',
                       );
                     }
                   },

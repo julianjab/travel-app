@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vamos/core/theme/vamos_colors.dart';
 import 'package:vamos/core/theme/vamos_spacing.dart';
 import 'package:vamos/core/theme/vamos_typography.dart';
+import 'package:vamos/core/utils/snackbar_utils.dart';
 import 'package:vamos/data/models/expense.dart';
 import 'package:vamos/data/models/trip.dart';
 import 'package:vamos/features/expenses/application/expense_actions_notifier.dart';
 import 'package:vamos/features/expenses/application/expenses_notifier.dart';
 import 'package:vamos/features/expenses/domain/balance_calculator.dart';
 import 'package:vamos/features/trips/application/my_trips_notifier.dart';
+import 'package:vamos/shared/widgets/loading_indicator.dart';
 
 /// F3-10/F3-11 — Balances screen.
 ///
@@ -31,16 +33,13 @@ class BalancesScreen extends ConsumerWidget {
     final actionsState = ref.watch(expenseActionsProvider);
 
     ref.listen<AsyncValue<void>>(expenseActionsProvider, (prev, next) {
-      if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al registrar el pago. Intentá de nuevo.'),
-          ),
-        );
-      } else if (next.hasValue && prev?.isLoading == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Deuda saldada')),
-        );
+      next.whenOrNull(
+        error: (e, _) {
+          if (context.mounted) showErrorSnackBar(context);
+        },
+      );
+      if (next.hasValue && prev?.isLoading == true) {
+        if (context.mounted) showSuccessSnackBar(context, 'Deuda saldada');
       }
     });
 
@@ -52,7 +51,7 @@ class BalancesScreen extends ConsumerWidget {
         title: Text('Saldos del viaje', style: VamosTypography.headlineMedium),
       ),
       body: expensesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const VamosLoadingIndicator(),
         error: (err, _) => _ErrorState(
           onRetry: () => ref.invalidate(expensesProvider(tripId)),
         ),
