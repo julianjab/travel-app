@@ -29,4 +29,15 @@ abstract class ItineraryRepository {
   /// Deletes an item. Only the author or the trip facilitator may call this.
   /// Enforcement happens in Firestore rules.
   Future<void> deleteItem({required String tripId, required String itemId});
+
+  /// Records or updates the [userId]'s vote on [itemId].
+  ///
+  /// [vote] must be "yes" or "no". The operation is idempotent: calling it
+  /// again with the same value overwrites the previous vote.
+  Future<void> castVote({
+    required String tripId,
+    required String itemId,
+    required String userId,
+    required String vote,
+  });
 }
