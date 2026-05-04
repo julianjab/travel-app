@@ -352,6 +352,31 @@ Estas reglas aplican a Cowork mientras ejecuta las tareas:
 - No agregar dependencias, archivos o carpetas que no estén en este README. Si surge una duda, alertar al usuario antes de tomar la decisión.
 - Si alguna tarea falla (ej: un archivo de los esperados no existe, un permiso falta), alertar al usuario y no continuar con las siguientes tareas.
 
+## Release builds
+
+### Android (Play Internal Testing)
+
+1. Copy `app/android/key.properties.example` to `app/android/key.properties` and fill in your keystore path and passwords. This file is gitignored and must never be committed.
+2. Run:
+   ```bash
+   cd app/android && make build-android-release
+   ```
+   The signed AAB lands at `app/build/app/outputs/bundle/release/app-release.aab`.
+3. Upload the AAB to Google Play Console → Internal Testing.
+
+### iOS (TestFlight)
+
+1. Copy `app/ios/ExportOptions.plist.example` to `app/ios/ExportOptions.plist` and fill in your `teamID`. This file is gitignored.
+2. Make sure your Apple Developer account is signed in to Xcode and the provisioning profile for `com.jabsolutions.vamos` is installed.
+3. Run:
+   ```bash
+   app/ios/release_build.sh
+   ```
+   The IPA lands at `app/build/ios-release/vamos.ipa`.
+4. Upload via Xcode Organizer or `xcrun altool`.
+
+---
+
 ## 7. Referencias
 
 - Producto: `docs/02-prd-inicial.md` (PRD), `docs/03-mvp-scope.md` (alcance del MVP)

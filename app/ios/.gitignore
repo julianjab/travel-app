@@ -32,3 +32,8 @@ Runner/GeneratedPluginRegistrant.*
 !default.mode2v3
 !default.pbxuser
 !default.perspectivev3
+
+# Release build artifacts — never commit credentials or build output.
+ExportOptions.plist
+*.ipa
+*.xcarchive
