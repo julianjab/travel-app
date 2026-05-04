@@ -56,6 +56,10 @@ dependencies:
   # Date and number formatting (NOT internationalization — Spanish hardcoded)
   intl: ^0.20.2
 
+  # Sharing + deep-link opening
+  share_plus: ^10.1.4
+  url_launcher: ^6.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

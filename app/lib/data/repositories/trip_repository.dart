@@ -23,4 +23,9 @@ abstract class TripRepository {
   /// The [facilitatorAlias] is used as the member alias for the facilitator.
   /// Returns the generated [tripId] on success.
   Future<String> create(Trip trip, String facilitatorAlias);
+
+  /// Streams the single trip document at `trips/{tripId}`.
+  ///
+  /// Emits null if the document does not exist (e.g., was deleted).
+  Stream<Trip?> watchById(String tripId);
 }

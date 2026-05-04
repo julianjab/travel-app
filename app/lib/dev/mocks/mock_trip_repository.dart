@@ -48,4 +48,11 @@ class MockTripRepository implements TripRepository {
     _trips.add(trip.copyWith(id: fakeId));
     return fakeId;
   }
+
+  /// Returns a stream that emits the trip with [tripId] if it exists, or null.
+  @override
+  Stream<Trip?> watchById(String tripId) {
+    final trip = _trips.where((t) => t.id == tripId).firstOrNull;
+    return Stream.value(trip);
+  }
 }

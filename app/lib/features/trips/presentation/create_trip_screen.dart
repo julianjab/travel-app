@@ -114,7 +114,8 @@ class _CreateTripScreenState extends ConsumerState<CreateTripScreen> {
       next.whenData((result) {
         if (result.tripId != null) {
           _hasNavigated = true;
-          context.go('/trips/${result.tripId}');
+          // Navigate to F1.3 (invite screen) instead of the trip stub.
+          context.go('/trips/${result.tripId}/invite');
         }
       });
     });
